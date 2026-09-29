@@ -15,6 +15,16 @@
     "dotenv": "^18.0.4",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
-    "nodemon": "^3.1.14"
-  }
+    "mysql2": "^3.24.4",
+    "nodemon": "^3.1.14",
+    "port": "^0.8.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jem4y/Mini-Capstone.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jem4y/Mini-Capstone/issues"
+  },
+  "homepage": "https://github.com/Jem4y/Mini-Capstone#readme"
 }

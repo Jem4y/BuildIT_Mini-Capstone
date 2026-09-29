@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
+
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
 
@@ -20,49 +22,49 @@ const storeData = {
     { 
       name: "Graphics Cards", 
       icon: "bi-gpu-card", 
-      itemCount: "42 Products", 
+      itemCount: "5 Products", 
       badge: "In Stock" 
     },
     { 
       name: "Gaming Laptops", 
       icon: "bi-laptop", 
-      itemCount: "35 Products", 
+      itemCount: "5 Products", 
       badge: "Popular" 
     },
     { 
       name: "Processors (CPU)", 
       icon: "bi-cpu", 
-      itemCount: "28 Products", 
-      badge: null 
+      itemCount: "5 Products", 
+      badge: "Jeson Hot" 
     },
     { 
       name: "Mechanical Keyboards", 
       icon: "bi-keyboard", 
-      itemCount: "64 Products", 
+      itemCount: "5 Products", 
       badge: "Hot" 
     },
     { 
       name: "Monitors", 
       icon: "bi-display", 
-      itemCount: "31 Products", 
+      itemCount: "5 Products", 
       badge: "Sale" 
     },
     { 
       name: "Headsets & Audio", 
       icon: "bi-headphones", 
-      itemCount: "49 Products", 
+      itemCount: "5 Products", 
       badge: null 
     },
     { 
       name: "Gaming Mice", 
       icon: "bi-mouse3", 
-      itemCount: "52 Products", 
+      itemCount: "5 Products", 
       badge: "New" 
     },
     { 
       name: "Power Supplies", 
       icon: "bi-plug", 
-      itemCount: "23 Products", 
+      itemCount: "5 Products", 
       badge: null 
     }
   ],
@@ -134,6 +136,10 @@ app.get('/login', (req, res) => {
 
 app.get('/register', (req, res) => {
   res.render('register');
+});
+
+app.get('/pcbuild', (req,res)=> {
+  res.render('pcbuild')
 });
 
 app.listen(PORT, () => {

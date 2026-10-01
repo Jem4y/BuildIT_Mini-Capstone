@@ -66,6 +66,12 @@ const storeData = {
       icon: "bi-plug", 
       itemCount: "5 Products", 
       badge: null 
+    },
+    { 
+      name: "Ram", 
+      icon: "bi-memory", 
+      itemCount: "5 Products", 
+      badge: null 
     }
   ],
   products: [
@@ -138,8 +144,12 @@ app.get('/register', (req, res) => {
   res.render('register');
 });
 
-app.get('/pcbuild', (req,res)=> {
-  res.render('pcbuild')
+app.get('/pcbuild', (req, res) => {
+  res.render('pcbuilder');
+});
+
+app.get('/pcbuilder', (req, res) => {
+  res.render('pcbuilder');
 });
 
 app.listen(PORT, () => {

@@ -156,4 +156,6 @@ app.listen(PORT, () => {
   console.log(`i.TECH EJS Store running on http://localhost:${PORT}`);
 });
 
-okay may a
+app.listen(PORT, () => {
+  console.log(`i.TECH EJS Store running on http://localhost:${PORT}`);
+});

@@ -12,9 +12,11 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "dotenv": "^18.0.4",
     "ejs": "^6.0.1",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "mysql2": "^3.24.4",
     "nodemon": "^3.1.14",
     "port": "^0.8.1"
@@ -26,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/Jem4y/Mini-Capstone/issues"
   },
-  "homepage": "https://github.com/Jem4y/Mini-Capstone#readme"
+  "homepage": "https://github.com/Jem4y/Mini-Capstone#readme",
+  "allowScripts": {
+    "express-session@1.19.0": true
+  }
 }

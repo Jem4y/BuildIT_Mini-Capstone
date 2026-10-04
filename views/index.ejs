@@ -1,146 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PHeripheral INC | Gaming Rigs & PC Hardware</title>
-  
-  <!-- Google Fonts: Rajdhani & Inter -->
+
+  <title>BuildIT | Gaming Hardware & Custom Rigs</title>
+
+  <!-- Gamer Theme CSS -->
+  <link rel="stylesheet" href="style.css">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  
-  <!-- Minimal Bootstrap 5 CSS (Grid & Utilities) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-utilities.min.css" rel="stylesheet">
-  
-  <!-- Bootstrap Icons CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
 
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css"
+    rel="stylesheet"
+  >
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    rel="stylesheet"
+  >
 </head>
+
 <body>
 
+  <!-- NAVBAR -->
   <nav class="itech-navbar py-3">
     <div class="container d-flex justify-content-between align-items-center">
-      <a href="#" class="brand-logo"> PHeripheral <span>INC</span></a>
-      
+
+      <a href="/" class="brand-logo">
+        BuildIT <span>INC</span>
+      </a>
+
+      <!-- NAVIGATION LINKS -->
       <div class="d-none d-md-flex align-items-center gap-4">
-        <a href="#" class="nav-link-custom active"><i class="bi bi-house-door me-1"></i> Home</a>
-        <a href="#categories" class="nav-link-custom"><i class="bi bi-grid me-1"></i> Categories</a>
-        <a href="#products" class="nav-link-custom"><i class="bi bi-cpu me-1"></i> Gear</a>
-        <a href="pcbuild" class="nav-link-custom"><i class="bi bi-wrench-adjustable me-1"></i> PC Builder</a>
+        <a href="/" class="nav-link-custom active">
+          <i class="bi bi-house-door me-1"></i> Home
+        </a>
+        <a href="#categories" class="nav-link-custom">
+          <i class="bi bi-grid me-1"></i> Categories
+        </a>
+        <a href="#products" class="nav-link-custom">
+          <i class="bi bi-cpu me-1"></i> Gear
+        </a>
+        <!-- PC BUILDER NAV LINK -->
+        <a href="/pcbuild" class="nav-link-custom text-info">
+          <i class="bi bi-tools me-1"></i> PC Builder
+        </a>
       </div>
 
       <div class="d-flex align-items-center gap-3">
-        <a href="/login" class="nav-link-custom d-none d-sm-inline-flex align-items-center">
-          <i class="bi bi-person me-1"></i> LOGIN
-        </a>
-        <button class="btn btn-cyber py-2 px-3 fs-6">
+        <% if (user) { %>
+          <span class="text-info fw-bold small">
+            <i class="bi bi-controller me-1"></i> <%= user %>
+          </span>
+          <a href="/logout" class="nav-link-custom text-danger">LOGOUT</a>
+        <% } else { %>
+          <a href="/login" class="nav-link-custom d-none d-sm-inline-flex align-items-center">
+            <i class="bi bi-person me-1"></i> LOGIN
+          </a>
+        <% } %>
+
+        <a href="/cart" class="btn-cyber py-2 px-3 fs-6">
           <i class="bi bi-cart3 fs-5"></i>
           <span class="d-none d-sm-inline">CART</span>
-        </button>
+        </a>
       </div>
+
     </div>
   </nav>
 
+
+  <!-- HERO -->
   <header class="hero-banner">
     <div class="container text-center">
       <div class="row justify-content-center">
         <div class="col-lg-8">
-          <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase tracking-wide fs-7">Official Tech Reseller</span>
-          <h1 class="hero-title mb-3"><%= hero.title %></h1>
-          <p class="text-secondary fs-5 mb-4"><%= hero.subtitle %></p>
-          <a href="<%= hero.ctaLink %>" class="btn-cyber">
-            <%= hero.ctaText %> <i class="bi bi-arrow-right"></i>
-          </a>
+
+          <span class="category-badge position-relative d-inline-block mb-3 px-3 py-2">
+            OFFICIAL TECH RESELLER
+          </span>
+
+          <h1 class="hero-title mb-3">
+            <%= hero?.title || "LEVEL UP YOUR GEAR" %>
+          </h1>
+
+          <p class="text-secondary fs-5 mb-4">
+            <%= hero?.subtitle || "Build your ultimate gaming setup with high-performance hardware." %>
+          </p>
+
+          <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="<%= hero?.ctaLink || '#products' %>" class="btn-cyber">
+              <%= hero?.ctaText || "EXPLORE CATALOG" %>
+              <i class="bi bi-arrow-right"></i>
+            </a>
+
+            <!-- PC BUILDER HERO BUTTON -->
+            <a href="/pcbuild" class="btn-cyber" style="background: linear-gradient(135deg, var(--accent-magenta), #e0004c); color: #fff;">
+              SYSTEM BUILDER
+              <i class="bi bi-tools"></i>
+            </a>
+          </div>
+
         </div>
       </div>
     </div>
   </header>
 
+
+  <!-- PC BUILDER FEATURE BANNER -->
+  <section class="py-5" style="background: rgba(0, 240, 255, 0.03); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8">
+          <span class="text-info fw-bold small text-uppercase" style="letter-spacing: 2px;">
+            <i class="bi bi-cpu-fill me-1"></i> CUSTOM RIG CONFIGURATOR
+          </span>
+          <h2 class="fs-2 font-monospace fw-bold text-white mt-2 mb-2">
+            BUILD YOUR CUSTOM PC LOADOUT
+          </h2>
+          <p class="text-secondary m-0">
+            Pick compatible Processors, Graphics Cards, Motherboards, and RAM memory to configure a high-performance gaming desktop and add the whole rig directly to your cart.
+          </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+          <a href="/pcbuild" class="btn-cyber py-3 px-4">
+            LAUNCH BUILDER <i class="bi bi-wrench-adjustable ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CATEGORIES -->
   <section id="categories" class="py-5">
     <div class="container my-4">
+
       <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
           <h2 class="section-header m-0">BROWSE CATEGORIES</h2>
-          <p class="text-secondary small mt-2 m-0">Find components by hardware category</p>
+          <p class="text-secondary small mt-2 m-0">Equip your build with core components</p>
         </div>
       </div>
 
-      <!-- Minimal Bootstrap Grid Row -->
       <div class="row g-3">
-        <% categories.forEach(category => { %>
-          <div class="col-6 col-md-4 col-lg-3">
-            <div class="category-card">
-              <% if(category.badge) { %>
-                <span class="category-badge"><%= category.badge %></span>
-              <% } %>
-              
-              <!-- Bootstrap Icon container -->
-              <div class="category-icon-box">
-                <i class="bi <%= category.icon %>"></i>
-              </div>
-              
-              <h3 class="category-title"><%= category.name %></h3>
-              <div class="category-count"><i class="bi bi-layers me-1"></i><%= category.itemCount %></div>
+        <% if (categories && categories.length > 0) { %>
+          <% categories.forEach(category => { %>
+            <div class="col-6 col-md-4 col-lg-3">
+              <a href="/?category=<%= encodeURIComponent(category.name) %>" class="text-decoration-none">
+                <div class="category-card">
+
+                  <% if (category.badge) { %>
+                    <span class="category-badge"><%= category.badge %></span>
+                  <% } %>
+
+                  <div class="category-icon-box">
+                    <i class="bi <%= category.icon || 'bi-box' %>"></i>
+                  </div>
+
+                  <h3 class="category-title"><%= category.name %></h3>
+
+                  <div class="text-secondary small">
+                    <i class="bi bi-layers me-1"></i> <%= category.itemCount || "Products" %>
+                  </div>
+
+                </div>
+              </a>
             </div>
+          <% }) %>
+        <% } else { %>
+          <div class="col-12">
+            <div class="text-secondary text-center py-5">No categories available.</div>
           </div>
-        <% }) %>
+        <% } %>
       </div>
+
     </div>
   </section>
 
+
+  <!-- PRODUCTS -->
   <section id="products" class="py-5" style="background: var(--bg-surface);">
     <div class="container my-4">
-      <div class="d-flex align-items-center justify-content-between mb-4">
+
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
           <h2 class="section-header m-0">FEATURED HARDWARE</h2>
-          <p class="text-secondary small mt-2 m-0">Authentic gaming hardware with store warranty</p>
+          <p class="text-secondary small mt-2 m-0">Verified hardware with warranty</p>
+        </div>
+
+        <div class="mt-3 mt-md-0">
+          <form method="GET" action="/">
+            <select
+              name="sort"
+              class="form-select bg-dark text-white border-secondary p-2 rounded"
+              style="font-family: var(--font-heading); letter-spacing: 1px;"
+              onchange="this.form.submit()"
+            >
+              <option value="">Sort by Price</option>
+              <option value="low">Lowest Price</option>
+              <option value="high">Highest Price</option>
+            </select>
+          </form>
         </div>
       </div>
 
-      <!-- Minimal Bootstrap Grid Row for Products -->
       <div class="row g-4">
-        <% products.forEach(product => { %>
-          <div class="col-12 col-sm-6 col-lg-4">
-            <div class="product-card">
-              <% if(product.badge) { %>
-                <span class="product-badge-pill"><%= product.badge %></span>
-              <% } %>
-              
-              <div class="product-img-box">
-                <img src="<%= product.image %>" alt="<%= product.name %>" loading="lazy">
-              </div>
+        <% if (products && products.length > 0) { %>
+          <% products.forEach(product => { %>
+            <div class="col-12 col-sm-6 col-lg-4">
+              <div class="product-card">
 
-              <div class="product-body">
-                <span class="text-uppercase small text-secondary mb-1 fw-bold"><%= product.category %></span>
-                <h3 class="fs-6 fw-semibold mb-3 text-white"><%= product.name %></h3>
-                
-                <div class="mt-auto d-flex align-items-center justify-content-between pt-2">
-                  <div>
-                    <span class="fs-5 fw-bold text-info font-monospace"><%= product.price %></span>
-                    <% if(product.oldPrice) { %>
-                      <span class="text-muted text-decoration-line-through small ms-1"><%= product.oldPrice %></span>
-                    <% } %>
-                  </div>
-                  <button class="btn-add-cart">
-                    <i class="bi bi-cart-plus me-1"></i> Add
-                  </button>
+                <% if (product.badge) { %>
+                  <span class="product-badge-pill"><%= product.badge %></span>
+                <% } %>
+
+                <div class="product-img-box">
+                  <img
+                    src="<%= product.image || '/images/no-image.png' %>"
+                    alt="<%= product.name %>"
+                    loading="lazy"
+                  >
                 </div>
+
+                <div class="product-body">
+                  <span class="text-uppercase small text-secondary mb-1 fw-bold">
+                    <%= product.category || "Hardware" %>
+                  </span>
+
+                  <h3 class="fs-6 fw-semibold mb-3 text-white">
+                    <%= product.name %>
+                  </h3>
+
+                  <div class="mt-auto d-flex align-items-center justify-content-between pt-2">
+                    <div>
+                      <span class="fs-5 fw-bold text-info font-monospace">
+                        ₱<%= Number(product.price).toLocaleString() %>
+                      </span>
+
+                      <% if (product.oldPrice) { %>
+                        <span class="text-muted text-decoration-line-through small ms-1">
+                          ₱<%= Number(product.oldPrice).toLocaleString() %>
+                        </span>
+                      <% } %>
+                    </div>
+
+                    <form action="/cart/add" method="POST">
+                      <input type="hidden" name="productId" value="<%= product.id %>">
+                      <button type="submit" class="btn-add-cart">
+                        <i class="bi bi-cart-plus me-1"></i> Add
+                      </button>
+                    </form>
+                  </div>
+
+                </div>
+
               </div>
             </div>
+          <% }) %>
+        <% } else { %>
+          <div class="col-12 text-center text-secondary py-5">
+            <i class="bi bi-box-seam fs-1"></i>
+            <p class="mt-3">No products available.</p>
           </div>
-        <% }) %>
+        <% } %>
       </div>
+
     </div>
   </section>
 
+
+  <!-- FOOTER -->
   <footer class="py-4 text-center">
     <div class="container">
-      <p class="mb-1">&copy; 2026  PHripheral Concept. All rights reserved.</p>
-      <small class="text-secondary">Powered by Node.js, Express, EJS & Bootstrap Icons CDN.</small>
+      <p class="mb-1">&copy; 2026 BuildIT INC. All rights reserved.</p>
+      <small class="text-secondary">Powered by Node.js, Express, EJS & MySQL.</small>
     </div>
   </footer>
 

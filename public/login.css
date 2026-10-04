@@ -1,176 +1,260 @@
-    :root {
-      --bg-dark: #080b11;
-      --bg-surface: #101622;
-      --bg-card: #151d2d;
-      --accent-cyan: #00f0ff;
-      --accent-red: #ff2a4b;
-      --accent-glow: rgba(0, 240, 255, 0.15);
-      --text-main: #f0f4f8;
-      --text-muted: #8c9ba5;
-      --border-color: #212c40;
-      --font-heading: 'Rajdhani', sans-serif;
-      --font-body: 'Inter', sans-serif;
-    }
+/* ==========================================================================
+   iTech – Login page
+   ========================================================================== */
 
-    * {
-      box-sizing: border-box;
-    }
+/* ---------- Design tokens ---------- */
+:root {
+  --bg-dark: #050811;
+  --bg-card: #0e1526;
+  --bg-input: #080d1a;
 
-    body {
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      background:
-        radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.08), transparent 35%),
-        radial-gradient(circle at 85% 80%, rgba(255, 42, 75, 0.08), transparent 35%),
-        var(--bg-dark);
-      color: var(--text-main);
-      font-family: var(--font-body);
-    }
+  --accent-cyan: #00f0ff;
+  --accent-magenta: #ff0055;
+  --glow-cyan: rgba(0, 240, 255, 0.2);
 
-    .itech-navbar {
-      background: rgba(8, 11, 17, 0.9);
-      border-bottom: 1px solid var(--border-color);
-    }
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #1e293b;
 
-    .brand-logo {
-      color: #fff;
-      font-family: var(--font-heading);
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-decoration: none;
-    }
+  --font-heading: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', sans-serif;
 
-    .brand-logo span {
-      color: var(--accent-red);
-    }
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 64px;
 
-    .nav-link-custom {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      font-weight: 500;
-      text-decoration: none;
-    }
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+}
 
-    .nav-link-custom:hover {
-      color: var(--accent-cyan);
-    }
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-    .login-shell {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 64px 16px;
-    }
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
-    .login-card {
-      width: min(100%, 450px);
-      padding: 40px;
-      background: rgba(21, 29, 45, 0.94);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
-    }
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh; /* accounts for mobile browser toolbars */
+  margin: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.1), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(255, 0, 85, 0.1), transparent 40%),
+    var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
 
-    .login-mark {
-      width: 56px;
-      height: 56px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      border: 1px solid rgba(0, 240, 255, 0.35);
-      border-radius: 10px;
-      background: rgba(0, 240, 255, 0.08);
-      color: var(--accent-cyan);
-      font-size: 1.6rem;
-    }
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
 
-    .login-title {
-      margin: 0 0 8px;
-      font-family: var(--font-heading);
-      font-size: 2.5rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
+/* ---------- Navigation ---------- */
+.itech-navbar {
+  background: rgba(10, 15, 29, 0.9);
+  border-bottom: 1px solid var(--border-color);
+}
 
-    .login-subtitle {
-      margin: 0 0 30px;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
+.brand-logo {
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-decoration: none;
+}
 
-    .form-label {
-      display: block;
-      margin-bottom: 8px;
-      color: #dbe5ec;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
+.brand-logo span {
+  color: var(--accent-magenta);
+}
 
-    .form-control {
-      width: 100%;
-      padding: 13px 14px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      outline: none;
-      background: #0d121c;
-      color: var(--text-main);
-      font: inherit;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
+.nav-link-custom {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
 
-    .form-control:focus {
-      border-color: var(--accent-cyan);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
+.nav-link-custom:hover {
+  color: var(--accent-cyan);
+}
 
-    .form-control::placeholder {
-      color: #667684;
-    }
+/* ---------- Layout ---------- */
+.login-shell {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}
 
-    .btn-cyber {
-      width: 100%;
-      padding: 13px 20px;
-      border: 0;
-      border-radius: 6px;
-      background: var(--accent-cyan);
-      color: var(--bg-dark);
-      cursor: pointer;
-      font: inherit;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      box-shadow: 0 0 20px var(--accent-glow);
-      transition: background-color 0.2s ease, transform 0.2s ease;
-    }
+/* ---------- Card ---------- */
+.login-card {
+  position: relative;
+  width: min(100%, 450px);
+  padding: var(--space-7);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+}
 
-    .btn-cyber:hover {
-      background: #fff;
-      transform: translateY(-2px);
-    }
+.login-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+}
 
-    .login-footer {
-      margin-top: 26px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      text-align: center;
-    }
+.login-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-5);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: var(--radius-md);
+  background: rgba(0, 240, 255, 0.08);
+  color: var(--accent-cyan);
+  font-size: 1.6rem;
+  box-shadow: 0 0 15px var(--glow-cyan);
+}
 
-    .login-footer a {
-      color: var(--accent-cyan);
-      text-decoration: none;
-    }
+.login-title {
+  margin: 0 0 var(--space-2);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 8vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
 
-    .login-footer a:hover {
-      text-decoration: underline;
-    }
+.login-subtitle {
+  margin: 0 0 var(--space-6);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
 
-    @media (max-width: 420px) {
-      .login-card {
-        padding: 30px 22px;
-      }
-    }
+/* ---------- Form ---------- */
+.form-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: #cbd5e1;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.form-control {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+  background: var(--bg-input);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 1rem; /* 16px+ prevents iOS auto-zoom on focus */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px var(--glow-cyan);
+}
+
+/* ---------- Button ---------- */
+.btn-cyber {
+  width: 100%;
+  min-height: 48px;
+  padding: 13px var(--space-5);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent-cyan), #00a8ff);
+  color: var(--bg-dark);
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px var(--glow-cyan);
+  transition: all 0.25s ease;
+}
+
+.btn-cyber:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px var(--accent-cyan);
+}
+
+/* ---------- Footer ---------- */
+.login-footer {
+  margin-top: var(--space-5);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.login-footer a {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 480px) {
+  .login-shell {
+    align-items: flex-start; /* keeps the card reachable when the keyboard opens */
+    padding: var(--space-5) var(--space-3);
+  }
+
+  .login-card {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .login-subtitle {
+    margin-bottom: var(--space-5);
+  }
+}
+
+@media (hover: none) {
+  .btn-cyber:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

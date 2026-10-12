@@ -1,6 +1,9 @@
+/*  Design tokens  */
 :root {
   --bg-dark: #050811;
   --bg-card: #0e1526;
+  --bg-input: #080d1a;
+
   --accent-cyan: #00f0ff;
   --accent-magenta: #ff0055;
   --accent-gold: #ffb703;
@@ -10,64 +13,94 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #1e293b;
+
   --font-heading: 'Rajdhani', sans-serif;
   --font-body: 'Inter', sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 60px;
+
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
 }
 
-* { box-sizing: border-box; }
+/*  Base  */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   margin: 0;
   background: var(--bg-dark);
   color: var(--text-main);
   font-family: var(--font-body);
+  line-height: 1.5;
 }
 
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/*  Layout  */
 .builder-shell {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 32px 16px 60px;
+  padding: var(--space-6) var(--space-4) var(--space-7);
 }
 
 .builder-title {
+  margin: 0 0 var(--space-5);
+  color: #fff;
   font-family: var(--font-heading);
   font-size: clamp(2.2rem, 5vw, 3.5rem);
   font-weight: 700;
+  line-height: 1.1;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #fff;
 }
 
 .builder-grid {
   display: grid;
   grid-template-columns: 1.25fr 0.95fr;
-  gap: 24px;
+  gap: var(--space-5);
   align-items: start;
 }
 
+/*  Cards  */
 .board-card,
 .summary-card {
+  padding: var(--space-5);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.5);
 }
 
-.board-card {
-  padding: 24px;
-}
-
 .section-label {
+  display: block;
+  margin-bottom: var(--space-4);
+  color: var(--accent-cyan);
   font-family: var(--font-heading);
   font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--accent-cyan);
-  margin-bottom: 16px;
-  display: block;
   font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }
 
+/*  Component list  */
 .component-list {
   display: grid;
   gap: 14px;
@@ -75,14 +108,14 @@ body {
 
 .component-item {
   display: grid;
-  grid-template-columns: 60px 1fr auto;
-  gap: 16px;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  gap: var(--space-4);
   align-items: center;
-  background: #080d1a;
+  padding: var(--space-3);
+  background: var(--bg-input);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 12px;
-  transition: all 0.25s ease;
+  border-radius: var(--radius-md);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .component-item:hover {
@@ -91,67 +124,71 @@ body {
 }
 
 .component-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(0, 240, 255, 0.08);
   color: var(--accent-cyan);
   font-size: 1.4rem;
 }
 
 .component-name {
-  font-family: var(--font-heading);
-  font-weight: 700;
   color: #fff;
+  font-family: var(--font-heading);
   font-size: 1.1rem;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  overflow-wrap: anywhere; /* long product names never push the layout wider */
 }
 
 .component-specs {
+  display: block;
   color: var(--text-muted);
   font-size: 0.8rem;
-  display: block;
 }
 
 .component-price {
   color: var(--accent-gold);
   font-family: var(--font-heading);
-  font-weight: 700;
   font-size: 1.2rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
+/*  Summary  */
 .summary-card {
-  padding: 24px;
   position: sticky;
   top: 90px;
 }
 
 .summary-header {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
   margin-bottom: 18px;
 }
 
 .summary-title {
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-weight: 700;
+  margin: 0;
   font-family: var(--font-heading);
   font-size: 1.8rem;
-  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 
 .budget-pill {
-  color: var(--accent-green);
-  background: rgba(0, 255, 136, 0.08);
+  padding: var(--space-1) 10px;
   border: 1px solid rgba(0, 255, 136, 0.25);
-  border-radius: 4px;
-  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 255, 136, 0.08);
+  color: var(--accent-green);
   font-family: var(--font-heading);
   font-size: 0.8rem;
   font-weight: 700;
@@ -160,8 +197,8 @@ body {
 
 .price-list {
   display: grid;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-5);
   padding: 0;
   list-style: none;
 }
@@ -169,38 +206,89 @@ body {
 .price-row {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-4);
   color: var(--text-muted);
   font-size: 0.95rem;
 }
 
 .total-box {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
   background: rgba(0, 240, 255, 0.06);
   border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 20px;
+  border-radius: var(--radius-md);
 }
 
 .total-label {
+  color: var(--text-muted);
   font-family: var(--font-heading);
   font-size: 0.9rem;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--text-muted);
 }
 
 .total-value {
+  color: var(--accent-cyan);
   font-family: var(--font-heading);
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--accent-cyan);
 }
 
+/*  Responsive  */
 @media (max-width: 980px) {
   .builder-grid {
     grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    position: static; /* sticky makes no sense in a single column */
+  }
+}
+
+@media (max-width: 560px) {
+  .builder-shell {
+    padding: var(--space-5) var(--space-3) var(--space-6);
+  }
+
+  .board-card,
+  .summary-card {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  /* Icon + name on the first row, price underneath aligned with the name */
+  .component-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .component-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+
+  .component-price {
+    grid-column: 2;
+  }
+
+  .summary-title {
+    font-size: 1.5rem;
+  }
+
+  .total-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
   }
 }

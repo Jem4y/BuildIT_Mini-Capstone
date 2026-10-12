@@ -1,8 +1,4 @@
-/* ==========================================================================
-   iTech – Login page
-   ========================================================================== */
-
-/* ---------- Design tokens ---------- */
+/*  Design tokens  */
 :root {
   --bg-dark: #050811;
   --bg-card: #0e1526;
@@ -33,7 +29,7 @@
   --radius-lg: 12px;
 }
 
-/* ---------- Base ---------- */
+/*  Base  */
 *,
 *::before,
 *::after {
@@ -64,7 +60,7 @@ body {
   outline-offset: 2px;
 }
 
-/* ---------- Navigation ---------- */
+/*  Navigation  */
 .itech-navbar {
   background: rgba(10, 15, 29, 0.9);
   border-bottom: 1px solid var(--border-color);
@@ -96,7 +92,7 @@ body {
   color: var(--accent-cyan);
 }
 
-/* ---------- Layout ---------- */
+/*  Layout  */
 .login-shell {
   display: flex;
   flex: 1;
@@ -105,7 +101,7 @@ body {
   padding: var(--space-8) var(--space-4);
 }
 
-/* ---------- Card ---------- */
+/*  Card  */
 .login-card {
   position: relative;
   width: min(100%, 450px);
@@ -156,7 +152,7 @@ body {
   font-size: 0.95rem;
 }
 
-/* ---------- Form ---------- */
+/*  Form  */
 .form-label {
   display: block;
   margin-bottom: var(--space-2);
@@ -186,7 +182,7 @@ body {
   box-shadow: 0 0 12px var(--glow-cyan);
 }
 
-/* ---------- Button ---------- */
+/*  Button  */
 .btn-cyber {
   width: 100%;
   min-height: 48px;
@@ -211,7 +207,7 @@ body {
   box-shadow: 0 0 25px var(--accent-cyan);
 }
 
-/* ---------- Footer ---------- */
+/*  Footer  */
 .login-footer {
   margin-top: var(--space-5);
   color: var(--text-muted);
@@ -229,7 +225,7 @@ body {
   text-decoration: underline;
 }
 
-/* ---------- Responsive ---------- */
+/*  Responsive  */
 @media (max-width: 480px) {
   .login-shell {
     align-items: flex-start; /* keeps the card reachable when the keyboard opens */
@@ -241,7 +237,7 @@ body {
   }
 
   .login-subtitle {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-7);
   }
 }
 

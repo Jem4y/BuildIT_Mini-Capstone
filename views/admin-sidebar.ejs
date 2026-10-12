@@ -1,0 +1,20 @@
+<aside class="sidebar" id="sidebar" aria-label="Admin navigation">
+  <a href="/" class="brand-logo">BUILD<span>IT</span></a>
+
+  <nav class="sidebar-nav">
+    <a href="#overview" class="nav-item active"><i class="bi bi-speedometer2"></i> Overview</a>
+    <a href="#products" class="nav-item"><i class="bi bi-cpu"></i> Products</a>
+    <a href="#customers" class="nav-item"><i class="bi bi-people"></i> Customers</a>
+    <a href="/" class="nav-item"><i class="bi bi-shop"></i> View store</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span class="avatar"><%= admin.name.charAt(0).toUpperCase() %></span>
+    <div class="sidebar-user">
+      <strong><%= admin.name %></strong>
+      <small><%= admin.email %></small>
+    </div>
+    <a href="/admin/logout" class="icon-btn" aria-label="Log out" title="Log out"><i class="bi bi-box-arrow-right"></i></a>
+  </div>
+</aside>
+<div class="scrim" id="scrim"></div>

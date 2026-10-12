@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin sign in | BuildIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/admin.css">
+  <style>
+    .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .auth-card { width: 100%; max-width: 380px; }
+    .auth-card .brand-logo { display: block; text-align: center; margin-bottom: 8px; }
+    .auth-sub { text-align: center; margin: 0 0 24px; opacity: .7; font-size: .9rem; }
+    .auth-card .field { margin-bottom: 16px; }
+    .auth-card .btn { width: 100%; justify-content: center; }
+    .auth-back { display: block; text-align: center; margin-top: 18px; font-size: .85rem; opacity: .7; }
+  </style>
+</head>
+<body>
+  <div class="auth-wrap">
+    <main class="panel auth-card" style="padding: 28px;">
+      <a href="/admin/login" class="brand-logo">BUILD<span>IT</span></a>
+      <p class="auth-sub">Administrator sign in</p>
+
+      <% if (error) { %>
+        <div class="flash error" role="alert"><%= error %></div>
+      <% } %>
+
+      <form action="/admin/login" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input class="input" id="email" name="email" type="email" required autocomplete="username" autofocus>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input class="input" id="password" name="password" type="password" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </form>
+
+      <a href="/" class="auth-back">&larr; Back to store</a>
+    </main>
+  </div>
+</body>
+</html>

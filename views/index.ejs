@@ -7,7 +7,7 @@
   <title>BuildIT | Gaming Hardware & Custom Rigs</title>
 
   <!-- Gamer Theme CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/style.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,40 +37,96 @@
       </a>
 
       <!-- NAVIGATION LINKS -->
-      <div class="d-none d-md-flex align-items-center gap-4">
+      <div class="nav-links d-none d-md-flex align-items-center">
         <a href="/" class="nav-link-custom active">
-          <i class="bi bi-house-door me-1"></i> Home
+          <i class="bi bi-house-door"></i> Home
         </a>
-        <a href="#categories" class="nav-link-custom">
-          <i class="bi bi-grid me-1"></i> Categories
+        <!-- CATEGORIES DROPDOWN -->
+        <div class="nav-dropdown">
+          <button type="button" class="nav-link-custom nav-dropdown-toggle<%= selectedCategory ? ' active' : '' %>"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="categoryMenu">
+            <i class="bi bi-grid"></i> Categories
+            <i class="bi bi-chevron-down nav-caret"></i>
+          </button>
+          <ul class="nav-dropdown-menu" id="categoryMenu">
+            <li>
+              <a href="/#products" class="<%= selectedCategory ? '' : 'current' %>">
+                <i class="bi bi-collection"></i> All products
+              </a>
+            </li>
+            <% categories.forEach(cat => { %>
+              <li>
+                <a href="/?category=<%= encodeURIComponent(cat.name) %>#products"
+                   class="<%= selectedCategory === cat.name ? 'current' : '' %>">
+                  <i class="bi <%= cat.icon || 'bi-box' %>"></i> <%= cat.name %>
+                </a>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+        <a href="/#products" class="nav-link-custom">
+          <i class="bi bi-cpu"></i> Gear
         </a>
-        <a href="#products" class="nav-link-custom">
-          <i class="bi bi-cpu me-1"></i> Gear
-        </a>
-        <!-- PC BUILDER NAV LINK -->
         <a href="/pcbuild" class="nav-link-custom text-info">
-          <i class="bi bi-tools me-1"></i> PC Builder
+          <i class="bi bi-tools"></i> PC Builder
         </a>
       </div>
 
-      <div class="d-flex align-items-center gap-3">
-        <% if (user) { %>
-          <span class="text-info fw-bold small">
-            <i class="bi bi-controller me-1"></i> <%= user %>
-          </span>
-          <a href="/logout" class="nav-link-custom text-danger">LOGOUT</a>
-        <% } else { %>
-          <a href="/login" class="nav-link-custom d-none d-sm-inline-flex align-items-center">
-            <i class="bi bi-person me-1"></i> LOGIN
-          </a>
-        <% } %>
+      <div class="nav-actions d-flex align-items-center">
+        <!-- ACCOUNT DROPDOWN -->
+        <div class="nav-dropdown nav-dropdown-right">
+          <button type="button" class="nav-link-custom nav-dropdown-toggle<%= user ? ' is-user' : '' %>"
+                  aria-haspopup="true" aria-expanded="false" aria-controls="accountMenu">
+            <i class="bi <%= user ? 'bi-controller' : 'bi-person' %>"></i>
+            <span class="nav-user d-none d-sm-inline"><%= user ? user : 'Account' %></span>
+            <i class="bi bi-chevron-down nav-caret"></i>
+          </button>
+          <ul class="nav-dropdown-menu" id="accountMenu">
+            <% if (user) { %>
+              <li><a href="/cart"><i class="bi bi-cart3"></i> My cart</a></li>
+              <li><a href="/pcbuild"><i class="bi bi-tools"></i> PC builder</a></li>
+              <li><a href="/logout" class="danger"><i class="bi bi-box-arrow-right"></i> Log out</a></li>
+            <% } else { %>
+              <li><a href="/login"><i class="bi bi-box-arrow-in-right"></i> Log in</a></li>
+              <li><a href="/register"><i class="bi bi-person-plus"></i> Create account</a></li>
+            <% } %>
+          </ul>
+        </div>
 
         <a href="/cart" class="btn-cyber py-2 px-3 fs-6">
           <i class="bi bi-cart3 fs-5"></i>
           <span class="d-none d-sm-inline">CART</span>
         </a>
+
+        <!-- MOBILE MENU BUTTON (phones and small tablets only) -->
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu"
+                aria-expanded="false" aria-controls="mobileMenu">
+          <i class="bi bi-list icon-open"></i>
+          <i class="bi bi-x-lg icon-close"></i>
+        </button>
       </div>
 
+    </div>
+
+    <!-- MOBILE MENU -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="/" class="mobile-link"><i class="bi bi-house-door"></i> Home</a>
+
+      <details class="mobile-details"<%= selectedCategory ? ' open' : '' %>>
+        <summary class="mobile-link"><i class="bi bi-grid"></i> Categories <i class="bi bi-chevron-down mobile-caret"></i></summary>
+        <div class="mobile-sub">
+          <a href="/#products" class="<%= selectedCategory ? '' : 'current' %>"><i class="bi bi-collection"></i> All products</a>
+          <% categories.forEach(cat => { %>
+            <a href="/?category=<%= encodeURIComponent(cat.name) %>#products"
+               class="<%= selectedCategory === cat.name ? 'current' : '' %>">
+              <i class="bi <%= cat.icon || 'bi-box' %>"></i> <%= cat.name %>
+            </a>
+          <% }) %>
+        </div>
+      </details>
+
+      <a href="/#products" class="mobile-link"><i class="bi bi-cpu"></i> Gear</a>
+      <a href="/pcbuild" class="mobile-link"><i class="bi bi-tools"></i> PC Builder</a>
     </div>
   </nav>
 
@@ -93,7 +149,7 @@
             <%= hero?.subtitle || "Build your ultimate gaming setup with high-performance hardware." %>
           </p>
 
-          <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <div class="hero-actions d-flex justify-content-center gap-3 flex-wrap">
             <a href="<%= hero?.ctaLink || '#products' %>" class="btn-cyber">
               <%= hero?.ctaText || "EXPLORE CATALOG" %>
               <i class="bi bi-arrow-right"></i>
@@ -152,7 +208,7 @@
         <% if (categories && categories.length > 0) { %>
           <% categories.forEach(category => { %>
             <div class="col-6 col-md-4 col-lg-3">
-              <a href="/?category=<%= encodeURIComponent(category.name) %>" class="text-decoration-none">
+              <a href="/?category=<%= encodeURIComponent(category.name) %>#products" class="category-link">
                 <div class="category-card">
 
                   <% if (category.badge) { %>
@@ -190,21 +246,30 @@
 
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-          <h2 class="section-header m-0">FEATURED HARDWARE</h2>
-          <p class="text-secondary small mt-2 m-0">Verified hardware with warranty</p>
+          <h2 class="section-header m-0"><%= selectedCategory ? selectedCategory.toUpperCase() : 'FEATURED HARDWARE' %></h2>
+          <p class="text-secondary small mt-2 m-0">
+            <% if (selectedCategory) { %>
+              <%= products.length %> item<%= products.length === 1 ? '' : 's' %> in this category &middot; <a href="/#products" class="clear-filter">Show all</a>
+            <% } else { %>
+              Verified hardware with warranty
+            <% } %>
+          </p>
         </div>
 
         <div class="mt-3 mt-md-0">
-          <form method="GET" action="/">
+          <form method="GET" action="/#products">
+            <% if (selectedCategory) { %>
+              <input type="hidden" name="category" value="<%= selectedCategory %>">
+            <% } %>
             <select
               name="sort"
               class="form-select bg-dark text-white border-secondary p-2 rounded"
               style="font-family: var(--font-heading); letter-spacing: 1px;"
               onchange="this.form.submit()"
             >
-              <option value="">Sort by Price</option>
-              <option value="low">Lowest Price</option>
-              <option value="high">Highest Price</option>
+              <option value="" <%= sort === '' ? 'selected' : '' %>>Sort by Price</option>
+              <option value="low" <%= sort === 'low' ? 'selected' : '' %>>Lowest Price</option>
+              <option value="high" <%= sort === 'high' ? 'selected' : '' %>>Highest Price</option>
             </select>
           </form>
         </div>
@@ -266,7 +331,7 @@
         <% } else { %>
           <div class="col-12 text-center text-secondary py-5">
             <i class="bi bi-box-seam fs-1"></i>
-            <p class="mt-3">No products available.</p>
+            <p class="mt-3"><%= selectedCategory ? 'No products in this category yet.' : 'No products available.' %></p>
           </div>
         <% } %>
       </div>
@@ -283,5 +348,77 @@
     </div>
   </footer>
 
+  <script>
+    // Navbar menus.
+    //  - Desktop dropdowns (.nav-dropdown): hover or click/tap opens them.
+    //  - Mobile menu (.nav-mobile-toggle -> #mobileMenu): shown below 768px.
+    // Esc or a click outside closes everything.
+    (function () {
+      const dropdowns = document.querySelectorAll('.nav-dropdown');
+      const mobileToggle = document.querySelector('.nav-mobile-toggle');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const navbar = document.querySelector('.itech-navbar');
+
+      function closeDropdowns(except) {
+        dropdowns.forEach((d) => {
+          if (d === except) return;
+          d.classList.remove('open');
+          d.querySelector('.nav-dropdown-toggle').setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      function setMobile(open) {
+        if (!mobileToggle || !mobileMenu) return;
+        mobileMenu.classList.toggle('open', open);
+        mobileToggle.setAttribute('aria-expanded', String(open));
+        mobileToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      }
+
+      dropdowns.forEach((d) => {
+        const toggle = d.querySelector('.nav-dropdown-toggle');
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const willOpen = !d.classList.contains('open');
+          setMobile(false);
+          closeDropdowns(d);
+          d.classList.toggle('open', willOpen);
+          toggle.setAttribute('aria-expanded', String(willOpen));
+        });
+      });
+
+      if (mobileToggle && mobileMenu) {
+        mobileToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          closeDropdowns();
+          setMobile(!mobileMenu.classList.contains('open'));
+        });
+
+        // Tapping a link closes the menu (needed for same-page #anchors)
+        mobileMenu.addEventListener('click', (e) => {
+          if (e.target.closest('a')) setMobile(false);
+        });
+
+        // If the window grows to desktop width, make sure the mobile menu is closed
+        window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
+          if (e.matches) setMobile(false);
+        });
+      }
+
+      document.addEventListener('click', (e) => {
+        closeDropdowns();
+        if (!navbar || !navbar.contains(e.target)) setMobile(false);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const openDropdown = document.querySelector('.nav-dropdown.open');
+        const mobileWasOpen = mobileMenu && mobileMenu.classList.contains('open');
+        closeDropdowns();
+        setMobile(false);
+        if (openDropdown) openDropdown.querySelector('.nav-dropdown-toggle').focus();
+        else if (mobileWasOpen) mobileToggle.focus();
+      });
+    })();
+  </script>
 </body>
 </html>

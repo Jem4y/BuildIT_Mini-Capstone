@@ -1,5 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2/promise');
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const path = require('path');
@@ -7,6 +7,11 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET is not set. Add it to your .env file.');
+}
+const SESSION_SECRET = process.env.SESSION_SECRET;
 
 // EJS View Engine Setup
 app.set('view engine', 'ejs');
@@ -21,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Express Session Setup
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'buildit_super_secret_key',
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -30,14 +35,7 @@ app.use(session({
 }));
 
 // MySQL Pool Database Connection
-const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'buildit',
-    waitForConnections: true,
-    connectionLimit: 10
-});
+const db = require('./conn');
 
 // Auto Database Schema Creator & Initial Seed Data
 async function initDB() {
@@ -88,6 +86,17 @@ async function initDB() {
             )
         `);
 
+        // Administrators live in their own table, separate from customers
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS admins (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                full_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
         // Seed Sample Categories
         const [categories] = await db.query('SELECT COUNT(*) AS count FROM categories');
         if (categories[0].count === 0) {
@@ -126,12 +135,12 @@ function requireLogin(req, res, next) {
     next();
 }
 
-// ---------------- APP ROUTES ----------------
+//  APP ROUTES 
 
 // 1. Home Catalog View
 app.get('/', async (req, res) => {
     try {
-        const sort = req.query.sort;
+        const sort = req.query.sort === 'low' || req.query.sort === 'high' ? req.query.sort : '';
         let orderByClause = 'ORDER BY id DESC';
 
         if (sort === 'low') {
@@ -140,18 +149,30 @@ app.get('/', async (req, res) => {
             orderByClause = 'ORDER BY price DESC';
         }
 
-        const [products] = await db.query(`
-            SELECT *
-            FROM products
-            WHERE stock > 0
-            ${orderByClause}
-        `);
-
         const [categories] = await db.query(`
             SELECT *
             FROM categories
             ORDER BY name ASC
         `);
+
+        // Only accept a category that really exists; anything else is ignored
+        const selectedCategory = categories.some(c => c.name === req.query.category)
+            ? req.query.category
+            : null;
+
+        let where = 'WHERE stock > 0';
+        const params = [];
+        if (selectedCategory) {
+            where += ' AND category = ?';
+            params.push(selectedCategory);
+        }
+
+        const [products] = await db.query(`
+            SELECT *
+            FROM products
+            ${where}
+            ${orderByClause}
+        `, params);
 
         const hero = {
             title: "LEVEL UP YOUR GEAR",
@@ -164,6 +185,8 @@ app.get('/', async (req, res) => {
             hero,
             categories,
             products,
+            selectedCategory,
+            sort,
             user: req.session.userName || null
         });
 
@@ -336,7 +359,7 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// ---------------- PC BUILDER ROUTES ----------------
+//  PC BUILDER ROUTES 
 
 // PC Builder View
 app.get('/pcbuild', async (req, res) => {
@@ -387,6 +410,198 @@ app.post('/pcbuild/add-all', requireLogin, async (req, res) => {
         res.status(500).send("Unable to save rig configuration to cart.");
     }
 });
+
+//  ADMIN ROUTES
+
+// The admin is re-checked in the admins table on every request, not trusted from the session
+async function requireAdmin(req, res, next) {
+    if (!req.session.adminId) {
+        return res.redirect('/admin/login');
+    }
+    const [rows] = await db.execute(
+        'SELECT id, full_name, email FROM admins WHERE id = ?',
+        [req.session.adminId]
+    );
+    if (rows.length === 0) {
+        delete req.session.adminId;
+        return res.redirect('/admin/login');
+    }
+    req.admin = { name: rows[0].full_name, email: rows[0].email };
+    next();
+}
+
+// Per-session CSRF token, required on every admin POST
+function csrfProtect(req, res, next) {
+    if (!req.session.csrfToken) {
+        req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+    }
+    res.locals.csrfToken = req.session.csrfToken;
+
+    if (req.method === 'POST') {
+        const sent = Buffer.from(String(req.body._csrf || ''));
+        const real = Buffer.from(req.session.csrfToken);
+        if (sent.length !== real.length || !crypto.timingSafeEqual(sent, real)) {
+            return res.status(403).send('Invalid or missing CSRF token. Reload the page and try again.');
+        }
+    }
+    next();
+}
+
+function setFlash(req, type, text) {
+    req.session.flash = { type, text };
+}
+
+// Validates the add/edit product form. Returns { error } or { data }.
+async function parseProductForm(body) {
+    const name = String(body.name || '').trim();
+    const category = String(body.category || '').trim();
+    const price = Number(body.price);
+    const oldPrice = body.oldPrice === '' || body.oldPrice == null ? null : Number(body.oldPrice);
+    const stock = Number(body.stock);
+    const badge = String(body.badge || '').trim() || null;
+    const image = String(body.image || '').trim() || '/images/no-image.png';
+
+    if (!name || name.length > 255) return { error: 'Product name is required (max 255 characters).' };
+
+    const [cats] = await db.execute('SELECT id FROM categories WHERE name = ?', [category]);
+    if (cats.length === 0) return { error: 'Please choose a valid category.' };
+
+    if (!Number.isFinite(price) || price < 0) return { error: 'Price must be a number of 0 or more.' };
+    if (oldPrice !== null && (!Number.isFinite(oldPrice) || oldPrice < 0)) return { error: 'Old price must be a number of 0 or more.' };
+    if (!Number.isInteger(stock) || stock < 0) return { error: 'Stock must be a whole number of 0 or more.' };
+    if (badge && badge.length > 50) return { error: 'Badge must be 50 characters or fewer.' };
+    if (image.length > 255 || !/^(https?:\/\/|\/)/i.test(image)) return { error: 'Image must be an http(s) URL or a path starting with /.' };
+
+    return { data: { name, category, price, oldPrice, stock, badge, image } };
+}
+
+const adminRouter = express.Router();
+adminRouter.use(requireAdmin, csrfProtect);
+
+// Dashboard: stats, products, categories, users
+adminRouter.get('/', async (req, res) => {
+    const flash = req.session.flash || null;
+    delete req.session.flash;
+
+    const [[counts]] = await db.query(`
+        SELECT
+            (SELECT COUNT(*) FROM products) AS products,
+            (SELECT COUNT(*) FROM users) AS customers,
+            (SELECT COUNT(*) FROM products WHERE stock <= 5) AS lowStock,
+            (SELECT COALESCE(SUM(ci.quantity * p.price), 0)
+               FROM cart_items ci JOIN products p ON p.id = ci.product_id) AS cartValue
+    `);
+
+    const [products] = await db.query('SELECT * FROM products ORDER BY id DESC');
+    const [categories] = await db.query('SELECT name FROM categories ORDER BY name ASC');
+    const [customers] = await db.query(`
+        SELECT u.id, u.full_name, u.email, u.created_at,
+               COALESCE(SUM(ci.quantity), 0) AS cart_items
+        FROM users u
+        LEFT JOIN cart_items ci ON ci.user_id = u.id
+        GROUP BY u.id
+        ORDER BY u.created_at DESC
+        LIMIT 100
+    `);
+
+    res.render('admin', {
+        admin: req.admin,
+        flash,
+        stats: {
+            products: Number(counts.products),
+            customers: Number(counts.customers),
+            lowStock: Number(counts.lowStock),
+            cartValue: Number(counts.cartValue)
+        },
+        products,
+        categories,
+        customers
+    });
+});
+
+// Add product
+adminRouter.post('/products', async (req, res) => {
+    const { error, data } = await parseProductForm(req.body);
+    if (error) {
+        setFlash(req, 'error', error);
+        return res.redirect('/admin#products');
+    }
+    await db.execute(
+        `INSERT INTO products (name, category, price, oldPrice, stock, image, badge)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [data.name, data.category, data.price, data.oldPrice, data.stock, data.image, data.badge]
+    );
+    setFlash(req, 'success', `Added "${data.name}" to ${data.category}.`);
+    res.redirect('/admin#products');
+});
+
+// Edit product
+adminRouter.post('/products/:id', async (req, res) => {
+    const { error, data } = await parseProductForm(req.body);
+    if (error) {
+        setFlash(req, 'error', error);
+        return res.redirect('/admin#products');
+    }
+    const [result] = await db.execute(
+        `UPDATE products
+         SET name = ?, category = ?, price = ?, oldPrice = ?, stock = ?, image = ?, badge = ?
+         WHERE id = ?`,
+        [data.name, data.category, data.price, data.oldPrice, data.stock, data.image, data.badge, req.params.id]
+    );
+    setFlash(req, result.affectedRows ? 'success' : 'error',
+        result.affectedRows ? `Updated "${data.name}".` : 'Product not found.');
+    res.redirect('/admin#products');
+});
+
+// Delete product (cart_items rows cascade)
+adminRouter.post('/products/:id/delete', async (req, res) => {
+    const [result] = await db.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
+    setFlash(req, result.affectedRows ? 'success' : 'error',
+        result.affectedRows ? 'Product deleted.' : 'Product not found.');
+    res.redirect('/admin#products');
+});
+
+// Separate admin sign-in (customers use /login)
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 12);
+
+app.get('/admin/login', csrfProtect, async (req, res) => {
+    if (req.session.adminId) {
+        const [rows] = await db.execute('SELECT id FROM admins WHERE id = ?', [req.session.adminId]);
+        if (rows.length) {
+            return res.redirect('/admin');
+        }
+    }
+    res.render('admin-login', { error: null });
+});
+
+app.post('/admin/login', csrfProtect, async (req, res) => {
+    const email = String(req.body.email || '').trim();
+    const password = String(req.body.password || '');
+
+    const [admins] = await db.execute('SELECT * FROM admins WHERE email = ?', [email]);
+    const adminUser = admins[0];
+
+    // Always run bcrypt so response time doesn't reveal whether the email exists
+    const valid = await bcrypt.compare(password, adminUser ? adminUser.password : DUMMY_HASH);
+
+    if (!adminUser || !valid) {
+        return res.status(401).render('admin-login', { error: 'Invalid email or password.' });
+    }
+
+    // New session ID on privilege change
+    req.session.regenerate((err) => {
+        if (err) throw err;
+        req.session.adminId = adminUser.id;
+        req.session.save(() => res.redirect('/admin'));
+    });
+});
+
+app.get('/admin/logout', (req, res) => {
+    delete req.session.adminId;
+    res.redirect('/admin/login');
+});
+
+app.use('/admin', adminRouter);
 
 // Start Server after Database Initialization
 initDB().then(() => {

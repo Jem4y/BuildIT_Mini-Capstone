@@ -424,6 +424,34 @@ select {
   padding-left: 40px;
 }
 
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.hint.good {
+  color: var(--accent-green);
+}
+
+.hint.bad {
+  color: var(--accent-magenta);
+}
+
+.discount-pill {
+  margin-left: var(--space-2);
+  padding: 1px 8px;
+  font-size: 0.75rem;
+}
+
+textarea.input {
+  min-height: 110px;
+  padding: var(--space-3) var(--space-4);
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
 .input:focus {
   border-color: var(--accent-cyan);
   box-shadow: 0 0 12px var(--glow-cyan);

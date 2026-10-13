@@ -1,3 +1,14 @@
+<%_
+  /* View helpers */
+  const peso = (n) => {
+    const v = Number(n);
+    return v.toLocaleString('en-PH', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 });
+  };
+  const discountPct = (p) => {
+    const price = Number(p.price), old = Number(p.oldPrice);
+    return old > price ? Math.round((1 - price / old) * 100) : 0;
+  };
+_%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,6 +70,7 @@
                 <a href="/?category=<%= encodeURIComponent(cat.name) %>#products"
                    class="<%= selectedCategory === cat.name ? 'current' : '' %>">
                   <i class="bi <%= cat.icon || 'bi-box' %>"></i> <%= cat.name %>
+                  <span class="menu-count" title="<%= cat.productCount %> available"><%= cat.productCount %></span>
                 </a>
               </li>
             <% }) %>
@@ -120,6 +132,7 @@
             <a href="/?category=<%= encodeURIComponent(cat.name) %>#products"
                class="<%= selectedCategory === cat.name ? 'current' : '' %>">
               <i class="bi <%= cat.icon || 'bi-box' %>"></i> <%= cat.name %>
+              <span class="menu-count" title="<%= cat.productCount %> available"><%= cat.productCount %></span>
             </a>
           <% }) %>
         </div>
@@ -222,7 +235,7 @@
                   <h3 class="category-title"><%= category.name %></h3>
 
                   <div class="text-secondary small">
-                    <i class="bi bi-layers me-1"></i> <%= category.itemCount || "Products" %>
+                    <i class="bi bi-layers me-1"></i> <%= category.productCount %> <%= category.productCount === 1 ? 'Product' : 'Products' %>
                   </div>
 
                 </div>
@@ -302,16 +315,25 @@
                     <%= product.name %>
                   </h3>
 
-                  <div class="mt-auto d-flex align-items-center justify-content-between pt-2">
-                    <div>
-                      <span class="fs-5 fw-bold text-info font-monospace">
-                        ₱<%= Number(product.price).toLocaleString() %>
-                      </span>
+                  <% if (product.description) { %>
+                    <p class="product-desc"><%= product.description %></p>
+                  <% } %>
 
-                      <% if (product.oldPrice) { %>
-                        <span class="text-muted text-decoration-line-through small ms-1">
-                          ₱<%= Number(product.oldPrice).toLocaleString() %>
-                        </span>
+                  <% const stock = Number(product.stock); %>
+                  <div class="stock-line<%= stock <= 5 ? ' low' : '' %>">
+                    <i class="bi bi-box-seam"></i>
+                    <%= stock <= 5 ? 'Only ' + stock + ' left' : stock + ' in stock' %>
+                  </div>
+
+                  <div class="mt-auto d-flex align-items-center justify-content-between pt-2">
+                    <div class="price-block">
+                      <span class="price-now">₱<%= peso(product.price) %></span>
+
+                      <% if (Number(product.oldPrice) > Number(product.price)) { %>
+                        <span class="price-old">₱<%= peso(product.oldPrice) %></span>
+                        <% if (discountPct(product) >= 1) { %>
+                          <span class="discount-tag">-<%= discountPct(product) %>%</span>
+                        <% } %>
                       <% } %>
                     </div>
 

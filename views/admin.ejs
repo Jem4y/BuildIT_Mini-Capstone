@@ -2,6 +2,7 @@
   /* View helpers */
   const money = n => '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const date = d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const discountPct = p => Number(p.oldPrice) > Number(p.price) ? Math.round((1 - Number(p.price) / Number(p.oldPrice)) * 100) : 0;
   const stockPill = s => s === 0 ? ['bad', 'Out of stock'] : s <= 5 ? ['warn', 'Low stock'] : ['ok', 'In stock'];
 %>
 <!DOCTYPE html>
@@ -85,7 +86,10 @@
                     <td data-label="Category"><%= p.category %></td>
                     <td data-label="Price" class="num price">
                       <%= money(p.price) %>
-                      <% if (p.oldPrice) { %><span class="old-price"><%= money(p.oldPrice) %></span><% } %>
+                      <% if (Number(p.oldPrice) > Number(p.price)) { %>
+                        <span class="old-price"><%= money(p.oldPrice) %></span>
+                        <% if (discountPct(p) >= 1) { %><span class="pill ok discount-pill">-<%= discountPct(p) %>%</span><% } %>
+                      <% } %>
                     </td>
                     <td data-label="Stock" class="num"><%= p.stock %></td>
                     <td data-label="Status"><span class="pill <%= cls %>"><%= label %></span></td>
@@ -99,7 +103,8 @@
                           data-old-price="<%= p.oldPrice || '' %>"
                           data-stock="<%= p.stock %>"
                           data-image="<%= p.image %>"
-                          data-badge="<%= p.badge || '' %>"><i class="bi bi-pencil"></i></button>
+                          data-badge="<%= p.badge || '' %>"
+                          data-description="<%= p.description || '' %>"><i class="bi bi-pencil"></i></button>
                         <form action="/admin/products/<%= p.id %>/delete" method="post" data-confirm="Delete &quot;<%= p.name %>&quot;? This also removes it from customers' carts.">
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                           <button class="icon-btn danger" aria-label="Delete <%= p.name %>"><i class="bi bi-trash"></i></button>
@@ -167,29 +172,42 @@
 
       <div class="field-row">
         <div class="field">
-          <label for="pPrice">Price (₱)</label>
-          <input class="input" id="pPrice" name="price" type="number" min="0" step="0.01" required inputmode="decimal">
-        </div>
-        <div class="field">
           <label for="pOldPrice">Old price (₱)</label>
           <input class="input" id="pOldPrice" name="oldPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Optional">
+        </div>
+        <div class="field">
+          <label for="pDiscount">Discount (%)</label>
+          <input class="input" id="pDiscount" type="number" min="0" max="99" step="any" inputmode="decimal" placeholder="Optional">
         </div>
       </div>
 
       <div class="field-row">
         <div class="field">
-          <label for="pStock">Stock</label>
-          <input class="input" id="pStock" name="stock" type="number" min="0" step="1" required inputmode="numeric">
+          <label for="pPrice">New price (₱)</label>
+          <input class="input" id="pPrice" name="price" type="number" min="0" step="0.01" required inputmode="decimal">
         </div>
         <div class="field">
-          <label for="pBadge">Badge</label>
-          <input class="input" id="pBadge" name="badge" maxlength="50" placeholder="e.g. NEW">
+          <label for="pStock">Quantity in stock</label>
+          <input class="input" id="pStock" name="stock" type="number" min="0" step="1" required inputmode="numeric">
         </div>
+      </div>
+
+      <p class="hint" id="discountNote" aria-live="polite">No discount.</p>
+
+      <div class="field">
+        <label for="pBadge">Badge</label>
+        <input class="input" id="pBadge" name="badge" maxlength="50" placeholder="e.g. NEW">
       </div>
 
       <div class="field">
         <label for="pImage">Image URL</label>
         <input class="input" id="pImage" name="image" maxlength="255" placeholder="https://… or /images/photo.png">
+      </div>
+
+      <div class="field">
+        <label for="pDescription">Description</label>
+        <textarea class="input" id="pDescription" name="description" rows="4" maxlength="2000"
+                  placeholder="Specs, features, what's in the box… (optional, shown on the store)"></textarea>
       </div>
 
       <div class="modal-actions">

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Checkout | BuildIT</title>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/pcbuilder.css">
+  <link rel="stylesheet" href="/checkout.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css"
+    rel="stylesheet"
+  >
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    rel="stylesheet"
+  >
+</head>
+
+<body>
+
+  <nav class="itech-navbar py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="/" class="brand-logo">BuildIT <span>INC</span></a>
+      <a href="/cart" class="nav-link-custom">
+        <i class="bi bi-arrow-left me-1"></i> Back to Cart
+      </a>
+    </div>
+  </nav>
+
+  <div class="builder-shell">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="builder-title m-0">CHECKOUT</h1>
+      <% if (userName) { %>
+        <span class="category-badge">PILOT: <%= userName %></span>
+      <% } %>
+    </div>
+
+    <% if (error) { %>
+      <div class="checkout-error" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
+      </div>
+    <% } %>
+
+    <form action="/checkout" method="POST" class="checkout-form" id="checkoutForm" autocomplete="on" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="builder-grid">
+
+        <div class="checkout-main">
+
+          <!-- DELIVERY -->
+          <div class="board-card">
+            <span class="section-label">DELIVERY ADDRESS (PHILIPPINES)</span>
+
+            <div class="form-grid">
+              <div class="field full">
+                <label class="form-label" for="fullName">FULL NAME</label>
+                <input class="form-control" id="fullName" name="fullName" type="text"
+                       autocomplete="name" value="<%= form.fullName || '' %>" required>
+              </div>
+
+              <div class="field full">
+                <label class="form-label" for="phone">MOBILE NUMBER</label>
+                <input class="form-control" id="phone" name="phone" type="tel" inputmode="tel"
+                       autocomplete="tel" placeholder="09171234567"
+                       value="<%= form.phone || '' %>" required>
+              </div>
+
+              <div class="field full">
+                <label class="form-label" for="street">HOUSE / BUILDING NO. &amp; STREET</label>
+                <input class="form-control" id="street" name="street" type="text"
+                       autocomplete="address-line1" placeholder="Unit 5, 123 Rizal Street"
+                       value="<%= form.street || '' %>" required>
+              </div>
+
+              <div class="field">
+                <label class="form-label" for="barangay">BARANGAY</label>
+                <input class="form-control" id="barangay" name="barangay" type="text"
+                       value="<%= form.barangay || '' %>" required>
+              </div>
+
+              <div class="field">
+                <label class="form-label" for="city">CITY / MUNICIPALITY</label>
+                <input class="form-control" id="city" name="city" type="text"
+                       autocomplete="address-level2" value="<%= form.city || '' %>" required>
+              </div>
+
+              <div class="field">
+                <label class="form-label" for="province">PROVINCE</label>
+                <input class="form-control" id="province" name="province" type="text"
+                       autocomplete="address-level1" placeholder="e.g. Cebu, Metro Manila"
+                       value="<%= form.province || '' %>" required>
+              </div>
+
+              <div class="field">
+                <label class="form-label" for="postalCode">POSTAL CODE</label>
+                <input class="form-control" id="postalCode" name="postalCode" type="text"
+                       inputmode="numeric" maxlength="4" autocomplete="postal-code"
+                       value="<%= form.postalCode || '' %>" required>
+              </div>
+
+              <div class="field full">
+                <label class="form-label" for="region">REGION</label>
+                <select class="form-control" id="region" name="region" required>
+                  <option value="">Select region</option>
+                  <% regions.forEach(r => { %>
+                    <option value="<%= r[0] %>" <%= form.region === r[0] ? 'selected' : '' %>><%= r[1] %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAYMENT -->
+          <div class="board-card">
+            <span class="section-label">MODE OF PAYMENT</span>
+
+            <div class="pay-options" role="radiogroup" aria-label="Mode of payment">
+              <label class="pay-option">
+                <input type="radio" name="paymentMethod" value="debit" <%= form.paymentMethod === 'debit' ? 'checked' : '' %>>
+                <span class="pay-icon"><i class="bi bi-credit-card-2-front"></i></span>
+                <span class="pay-text">
+                  <strong>Debit Card</strong>
+                  <small>Visa / Mastercard debit</small>
+                </span>
+              </label>
+
+              <label class="pay-option">
+                <input type="radio" name="paymentMethod" value="ewallet" <%= form.paymentMethod === 'ewallet' ? 'checked' : '' %>>
+                <span class="pay-icon"><i class="bi bi-phone"></i></span>
+                <span class="pay-text">
+                  <strong>E-Wallet</strong>
+                  <small>GCash, Maya, GrabPay, ShopeePay</small>
+                </span>
+              </label>
+
+              <label class="pay-option">
+                <input type="radio" name="paymentMethod" value="cod" <%= form.paymentMethod === 'cod' ? 'checked' : '' %>>
+                <span class="pay-icon"><i class="bi bi-cash-coin"></i></span>
+                <span class="pay-text">
+                  <strong>Cash on Delivery</strong>
+                  <small>Pay in cash when it arrives</small>
+                </span>
+              </label>
+            </div>
+
+            <!-- Debit card details -->
+            <div class="pay-panel" id="panel-debit">
+              <div class="form-grid">
+                <div class="field full">
+                  <label class="form-label" for="cardName">NAME ON CARD</label>
+                  <input class="form-control" id="cardName" name="cardName" type="text"
+                         autocomplete="cc-name" value="<%= form.cardName || '' %>">
+                </div>
+                <div class="field full">
+                  <label class="form-label" for="cardNumber">CARD NUMBER</label>
+                  <input class="form-control" id="cardNumber" name="cardNumber" type="text"
+                         inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456"
+                         maxlength="19">
+                </div>
+                <div class="field">
+                  <label class="form-label" for="cardExpiry">EXPIRY (MM/YY)</label>
+                  <input class="form-control" id="cardExpiry" name="cardExpiry" type="text"
+                         inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="field">
+                  <label class="form-label" for="cardCvv">CVV</label>
+                  <input class="form-control" id="cardCvv" name="cardCvv" type="password"
+                         inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4">
+                </div>
+              </div>
+              <p class="pay-note"><i class="bi bi-shield-lock me-1"></i>
+                Your full card number and CVV are never saved. Only the last 4 digits are kept on the order.</p>
+            </div>
+
+            <!-- E-wallet details -->
+            <div class="pay-panel" id="panel-ewallet">
+              <label class="form-label">CHOOSE YOUR E-WALLET</label>
+              <div class="wallet-options">
+                <% ewallets.forEach(w => { %>
+                  <label class="wallet-option">
+                    <input type="radio" name="ewalletProvider" value="<%= w %>" <%= form.ewalletProvider === w ? 'checked' : '' %>>
+                    <span><%= w %></span>
+                  </label>
+                <% }) %>
+              </div>
+
+              <div class="field full" style="margin-top: 16px;">
+                <label class="form-label" for="ewalletNumber">E-WALLET MOBILE NUMBER</label>
+                <input class="form-control" id="ewalletNumber" name="ewalletNumber" type="tel"
+                       inputmode="tel" placeholder="09171234567" value="<%= form.ewalletNumber || '' %>">
+              </div>
+            </div>
+
+            <!-- COD -->
+            <div class="pay-panel" id="panel-cod">
+              <p class="pay-note" style="margin: 0;">
+                <i class="bi bi-info-circle me-1"></i>
+                Prepare the exact amount in cash for the courier. You'll see the total to pay on your order confirmation.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary-card">
+          <div class="summary-header">
+            <h2 class="summary-title">ORDER SUMMARY</h2>
+            <span class="budget-pill"><%= cart.length %> ITEM<%= cart.length === 1 ? '' : 'S' %></span>
+          </div>
+
+          <ul class="summary-items">
+            <% cart.forEach(item => { %>
+              <li>
+                <span class="summary-item-name"><%= item.name %> <em>&times; <%= item.quantity %></em></span>
+                <strong>&#8369;<%= Number(item.subtotal).toLocaleString() %></strong>
+              </li>
+            <% }) %>
+          </ul>
+
+          <ul class="price-list">
+            <li class="price-row">
+              <span>Subtotal:</span>
+              <strong id="sumSubtotal" data-value="<%= subtotal %>">&#8369;<%= Number(subtotal).toLocaleString() %></strong>
+            </li>
+            <li class="price-row">
+              <span>Shipping:</span>
+              <strong id="sumShipping">Select region</strong>
+            </li>
+          </ul>
+
+          <div class="total-box">
+            <span class="total-label">TOTAL AMOUNT:</span>
+            <span class="total-value" id="sumTotal">&#8369;<%= Number(subtotal).toLocaleString() %></span>
+          </div>
+
+          <p class="pay-note" id="shipHint" style="margin: 0 0 16px;">
+            Shipping: &#8369;<%= shippingRates.ncr %> Metro Manila, &#8369;<%= shippingRates.other %> other regions.
+            Free on orders of &#8369;<%= Number(shippingRates.freeAbove).toLocaleString() %> or more.
+          </p>
+
+          <button type="submit" class="btn-cyber w-100 py-3 text-center justify-content-center" id="placeOrderBtn">
+            <span id="placeOrderLabel">PLACE ORDER</span> <i class="bi bi-lock ms-2"></i>
+          </button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+
+  <script>
+    (function () {
+      var rates = {
+        ncr: <%= Number(shippingRates.ncr) %>,
+        other: <%= Number(shippingRates.other) %>,
+        freeAbove: <%= Number(shippingRates.freeAbove) %>
+      };
+      var form = document.getElementById('checkoutForm');
+      var regionEl = document.getElementById('region');
+      var subtotal = Number(document.getElementById('sumSubtotal').dataset.value);
+      var peso = function (n) { return '\u20B1' + Number(n).toLocaleString('en-PH'); };
+
+      // Show only the panel for the chosen payment method
+      function syncPayment() {
+        var checked = form.querySelector('input[name="paymentMethod"]:checked');
+        var method = checked ? checked.value : '';
+        ['debit', 'ewallet', 'cod'].forEach(function (m) {
+          document.getElementById('panel-' + m).classList.toggle('active', m === method);
+        });
+        form.querySelectorAll('.pay-option').forEach(function (el) {
+          el.classList.toggle('selected', el.querySelector('input').checked);
+        });
+        var label = { debit: 'PAY WITH DEBIT CARD', ewallet: 'PAY WITH E-WALLET', cod: 'PLACE ORDER (COD)' }[method];
+        document.getElementById('placeOrderLabel').textContent = label || 'PLACE ORDER';
+      }
+
+      // Same rule as the server: free above threshold, else NCR vs. other regions
+      function syncShipping() {
+        var region = regionEl.value;
+        var shipEl = document.getElementById('sumShipping');
+        var fee = null;
+        if (subtotal >= rates.freeAbove) fee = 0;
+        else if (region) fee = region === 'NCR' ? rates.ncr : rates.other;
+
+        if (fee === null) {
+          shipEl.textContent = 'Select region';
+          document.getElementById('sumTotal').textContent = peso(subtotal);
+        } else {
+          shipEl.textContent = fee === 0 ? 'FREE' : peso(fee);
+          document.getElementById('sumTotal').textContent = peso(subtotal + fee);
+        }
+      }
+
+      form.querySelectorAll('input[name="paymentMethod"]').forEach(function (el) {
+        el.addEventListener('change', syncPayment);
+      });
+      form.querySelectorAll('.wallet-option input').forEach(function (el) {
+        el.addEventListener('change', function () {
+          form.querySelectorAll('.wallet-option').forEach(function (l) {
+            l.classList.toggle('selected', l.querySelector('input').checked);
+          });
+        });
+      });
+      regionEl.addEventListener('change', syncShipping);
+
+      // Card input niceties: group digits, auto-insert the slash in the expiry
+      var cardNumber = document.getElementById('cardNumber');
+      cardNumber.addEventListener('input', function () {
+        var digits = cardNumber.value.replace(/\D/g, '').slice(0, 16);
+        cardNumber.value = digits.replace(/(.{4})/g, '$1 ').trim();
+      });
+      var cardExpiry = document.getElementById('cardExpiry');
+      cardExpiry.addEventListener('input', function () {
+        var d = cardExpiry.value.replace(/\D/g, '').slice(0, 4);
+        cardExpiry.value = d.length > 2 ? d.slice(0, 2) + '/' + d.slice(2) : d;
+      });
+
+      // Prevent double-submits
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('placeOrderBtn');
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+      });
+
+      form.querySelectorAll('.wallet-option').forEach(function (l) {
+        l.classList.toggle('selected', l.querySelector('input').checked);
+      });
+      syncPayment();
+      syncShipping();
+    })();
+  </script>
+
+</body>
+</html>

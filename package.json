@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "all": "^0.0.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^18.0.4",
     "ejs": "^6.0.1",
@@ -30,6 +31,7 @@
   },
   "homepage": "https://github.com/Jem4y/Mini-Capstone#readme",
   "allowScripts": {
-    "express-session@1.19.0": true
+    "express-session@1.19.0": true,
+    "all@0.0.0": true
   }
 }

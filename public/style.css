@@ -744,6 +744,7 @@ footer {
   border-top: 1px solid var(--border-color);
   color: var(--text-muted);
   font-size: 0.85rem;
+  text-align:center;
 }
 
 /*  Responsive  */

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Verify Payment | BuildIT</title>
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/pcbuilder.css">
+  <link rel="stylesheet" href="/checkout.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css"
+    rel="stylesheet"
+  >
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    rel="stylesheet"
+  >
+</head>
+
+<body>
+
+  <nav class="itech-navbar py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="/" class="brand-logo">BuildIT <span>INC</span></a>
+      <a href="/checkout" class="nav-link-custom">
+        <i class="bi bi-arrow-left me-1"></i> Back to Checkout
+      </a>
+    </div>
+  </nav>
+
+  <div class="builder-shell">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <h1 class="builder-title m-0">VERIFY PAYMENT</h1>
+      <% if (userName) { %>
+        <span class="category-badge">PILOT: <%= userName %></span>
+      <% } %>
+    </div>
+
+    <% if (error) { %>
+      <div class="checkout-error" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><%= error %>
+      </div>
+    <% } %>
+
+    <div class="builder-grid">
+
+      <div class="checkout-main">
+
+        <div class="board-card">
+          <span class="section-label">ONE-TIME PASSWORD</span>
+
+          <p class="otp-lead">
+            We sent a 6-digit code to <strong><%= sentTo %></strong> to verify your
+            <strong><%= methodLabel %></strong> order<% if (reference) { %> (<%= reference %>)<% } %>.
+            Enter it below to complete your order.
+          </p>
+
+          <% if (demoCode) { %>
+            <div class="otp-demo" role="status">
+              <i class="bi bi-broadcast me-1"></i>
+              <span>DEMO &mdash; no SMS gateway is configured. Your code is
+                <strong class="otp-demo-code"><%= demoCode %></strong></span>
+            </div>
+          <% } else { %>
+            <p class="pay-note">Your code expired. Use &ldquo;Send a new code&rdquo; below.</p>
+          <% } %>
+
+          <form action="/checkout/otp" method="POST" class="checkout-form otp-form" id="otpForm" novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+            <div class="field full">
+              <label class="form-label" for="otp">ENTER 6-DIGIT CODE</label>
+              <input class="form-control otp-input" id="otp" name="otp" type="text"
+                     inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+                     pattern="\d{6}" placeholder="000000" required autofocus>
+            </div>
+
+            <p class="pay-note otp-timer" id="otpTimer" data-expires="<%= Number(expiresAt) || 0 %>"></p>
+
+            <button type="submit" class="btn-cyber w-100 py-3 text-center justify-content-center">
+              VERIFY &amp; PLACE ORDER <i class="bi bi-shield-check ms-2"></i>
+            </button>
+          </form>
+
+          <form action="/checkout/otp/resend" method="POST" class="otp-resend">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button type="submit" class="otp-link">Send a new code</button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="summary-card">
+        <div class="summary-header">
+          <h2 class="summary-title">ORDER SUMMARY</h2>
+          <span class="budget-pill"><%= cart.length %> ITEM<%= cart.length === 1 ? '' : 'S' %></span>
+        </div>
+
+        <ul class="summary-items">
+          <% cart.forEach(item => { %>
+            <li>
+              <span class="summary-item-name"><%= item.name %> <em>&times; <%= item.quantity %></em></span>
+              <strong>&#8369;<%= Number(item.subtotal).toLocaleString() %></strong>
+            </li>
+          <% }) %>
+        </ul>
+
+        <ul class="price-list">
+          <li class="price-row">
+            <span>Subtotal:</span>
+            <strong>&#8369;<%= Number(subtotal).toLocaleString() %></strong>
+          </li>
+          <li class="price-row">
+            <span>Shipping:</span>
+            <strong><%= shippingFee === 0 ? 'FREE' : '\u20B1' + Number(shippingFee).toLocaleString() %></strong>
+          </li>
+        </ul>
+
+        <div class="total-box">
+          <span class="total-label">TOTAL AMOUNT:</span>
+          <span class="total-value">&#8369;<%= Number(total).toLocaleString() %></span>
+        </div>
+
+        <p class="pay-note" style="margin: 0;">
+          <i class="bi bi-shield-lock me-1"></i>
+          Your order is only confirmed after the code is verified.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var input = document.getElementById('otp');
+      var form = document.getElementById('otpForm');
+      var timer = document.getElementById('otpTimer');
+      var expires = Number(timer.dataset.expires) || 0;
+
+      // Live countdown; the server enforces the real expiry too
+      function tick() {
+        var left = Math.max(0, Math.floor((expires - Date.now()) / 1000));
+        var mm = String(Math.floor(left / 60)).padStart(2, '0');
+        var ss = String(left % 60).padStart(2, '0');
+        timer.textContent = left > 0
+          ? 'Code expires in ' + mm + ':' + ss
+          : 'This code has expired \u2014 send a new one.';
+        timer.classList.toggle('expired', left === 0);
+      }
+      if (expires) {
+        tick();
+        setInterval(tick, 1000);
+      }
+
+      // Digits only, capped at 6
+      input.addEventListener('input', function () {
+        input.value = input.value.replace(/\D/g, '').slice(0, 6);
+      });
+
+      // Prevent double-submits
+      form.addEventListener('submit', function () {
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+      });
+    })();
+  </script>
+
+</body>
+</html>

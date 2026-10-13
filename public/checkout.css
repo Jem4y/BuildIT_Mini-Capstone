@@ -214,6 +214,65 @@
   font-style: normal;
 }
 
+/*  OTP verification step  */
+.otp-lead {
+  margin: 0 0 var(--space-4);
+  color: var(--text-main);
+  line-height: 1.7;
+}
+
+.otp-demo {
+  margin: 0 0 var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--accent-gold);
+  border-radius: var(--radius-md);
+  background: rgba(255, 183, 3, 0.08);
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+}
+
+.otp-demo-code {
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  letter-spacing: 5px;
+}
+
+.checkout-form .otp-input {
+  font-family: var(--font-heading);
+  font-size: 1.7rem;
+  letter-spacing: 12px;
+  text-align: center;
+}
+
+.otp-timer {
+  margin-top: var(--space-2);
+}
+
+.otp-timer.expired {
+  color: #ff7a9c;
+}
+
+.otp-resend {
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.otp-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-cyan);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.otp-link:hover {
+  color: #fff;
+}
+
 /*  Order confirmation  */
 .order-banner {
   display: flex;

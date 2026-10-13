@@ -673,6 +673,67 @@ function validateCheckout(body) {
     return { form, payment };
 }
 
+//  OTP VERIFICATION (all payment modes) 
+// Every payment mode must be approved with a one-time code before the order is placed.
+// OTP_METHODS is derived from PAYMENT_METHODS so all current modes are covered.
+const OTP_METHODS = new Set(Object.keys(PAYMENT_METHODS));
+const OTP_LENGTH = 6;
+const OTP_TTL_MS = 5 * 60 * 1000;          // a code stays valid for 5 minutes
+const OTP_MAX_ATTEMPTS = 5;                // wrong guesses before the code is burned
+const OTP_RESEND_COOLDOWN_MS = 30 * 1000;  // wait between "send a new code" requests
+
+// Uniformly random numeric code. crypto.randomInt avoids the modulo bias of Math.random.
+function generateOtp() {
+    return String(crypto.randomInt(0, 10 ** OTP_LENGTH)).padStart(OTP_LENGTH, '0');
+}
+
+function hashOtp(code) {
+    return crypto.createHash('sha256').update(String(code)).digest('hex');
+}
+
+// Constant-time compare so a wrong guess can't be timed
+function otpMatches(pending, code) {
+    const sent = Buffer.from(hashOtp(code));
+    const real = Buffer.from(pending.otpHash || '');
+    return sent.length === real.length && crypto.timingSafeEqual(sent, real);
+}
+
+function otpIsActive(pending) {
+    return Boolean(pending && pending.otpHash && pending.otpExpiresAt > Date.now());
+}
+
+function maskNumber(num) {
+    const s = String(num || '').replace(/\s+/g, '');
+    if (s.length <= 6) return s || 'your mobile number';
+    return s.slice(0, 3) + '*'.repeat(s.length - 6) + s.slice(-3);
+}
+
+function otpSentTo(pending) {
+    const form = pending.form;
+    const number = pending.payment.method === 'ewallet' ? form.ewalletNumber : form.phone;
+    return maskNumber(number);
+}
+
+// Issues a fresh code into the session and returns the plaintext once, for delivery.
+function issueOtp(req) {
+    const pending = req.session.pendingCheckout;
+    const now = Date.now();
+    const code = generateOtp();
+
+    pending.otpHash = hashOtp(code);
+    pending.otpExpiresAt = now + OTP_TTL_MS;
+    pending.otpIssuedAt = now;
+    pending.otpAttempts = 0;
+
+    // There is no SMS/e-mail gateway in this project, so the code is also kept in
+    // the (server-side) session purely to show the demo notice on the page.
+    // Remove otpDemo once a real gateway is wired up.
+    pending.otpDemo = code;
+
+    console.log(`[OTP] ${PAYMENT_METHODS[pending.payment.method] || pending.payment.method} code for ${otpSentTo(pending)}: ${code}`);
+    return code;
+}
+
 // Checkout page
 app.get('/checkout', requireLogin, csrfProtect, async (req, res) => {
     try {
@@ -683,21 +744,9 @@ app.get('/checkout', requireLogin, csrfProtect, async (req, res) => {
     }
 });
 
-// Place order
-app.post('/checkout', requireLogin, csrfProtect, async (req, res) => {
+// Writes the order inside a transaction. Shared by COD and OTP-approved payments.
+async function placeOrder(req, res, form, payment) {
     const userId = req.session.userId;
-
-    const result = validateCheckout(req.body);
-    if (result.error) {
-        try {
-            return await renderCheckout(req, res, { error: result.error, form: result.form, status: 400 });
-        } catch (error) {
-            console.error("Checkout Validation Render Error:", error);
-            return res.status(500).send('Unable to load checkout.');
-        }
-    }
-    const { form, payment } = result;
-
     const conn = await db.getConnection();
     try {
         await conn.beginTransaction();
@@ -766,6 +815,140 @@ app.post('/checkout', requireLogin, csrfProtect, async (req, res) => {
     } finally {
         conn.release();
     }
+}
+
+// Place order
+app.post('/checkout', requireLogin, csrfProtect, async (req, res) => {
+    const result = validateCheckout(req.body);
+    if (result.error) {
+        try {
+            return await renderCheckout(req, res, { error: result.error, form: result.form, status: 400 });
+        } catch (error) {
+            console.error("Checkout Validation Render Error:", error);
+            return res.status(500).send('Unable to load checkout.');
+        }
+    }
+    const { form, payment } = result;
+
+    // Every payment mode must be approved with a one-time code first
+    if (OTP_METHODS.has(payment.method)) {
+        req.session.pendingCheckout = {
+            form,
+            payment,
+            createdAt: Date.now(),
+            otpHash: null,
+            otpDemo: null,
+            otpIssuedAt: 0,
+            otpExpiresAt: 0,
+            otpAttempts: 0
+        };
+        // Save before redirecting so the next request is guaranteed to see it
+        return req.session.save((err) => {
+            if (err) {
+                console.error('Session Save Error:', err);
+                return res.status(500).send('Unable to start payment verification.');
+            }
+            res.redirect('/checkout/otp');
+        });
+    }
+
+    // Fallback for any mode that does not require OTP
+    await placeOrder(req, res, form, payment);
+});
+
+// Renders the OTP step for the order stashed in the session
+async function renderOtp(req, res, { error = null, status = 200 } = {}) {
+    const pending = req.session.pendingCheckout;
+    const cart = await loadCart(req.session.userId);
+    const subtotal = cart.reduce((sum, item) => sum + Number(item.subtotal), 0);
+    const shippingFee = shippingFor(pending.form.region, subtotal);
+
+    res.status(status).render('otp', {
+        error,
+        cart,
+        subtotal,
+        shippingFee,
+        total: subtotal + shippingFee,
+        demoCode: pending.otpDemo,
+        sentTo: otpSentTo(pending),
+        methodLabel: PAYMENT_METHODS[pending.payment.method] || pending.payment.method,
+        reference: pending.payment.reference,
+        expiresAt: pending.otpExpiresAt,
+        userName: req.session.userName
+    });
+}
+
+// OTP entry page
+app.get('/checkout/otp', requireLogin, csrfProtect, async (req, res) => {
+    const pending = req.session.pendingCheckout;
+    if (!pending) return res.redirect('/checkout');
+
+    try {
+        if (!otpIsActive(pending) || !pending.otpDemo) {
+            issueOtp(req);
+        }
+        await renderOtp(req, res);
+    } catch (error) {
+        console.error("OTP Load Error:", error);
+        res.status(500).send('Unable to load payment verification.');
+    }
+});
+
+// Verify the OTP, then approve the payment and place the order
+app.post('/checkout/otp', requireLogin, csrfProtect, async (req, res) => {
+    const pending = req.session.pendingCheckout;
+    if (!pending) return res.redirect('/checkout');
+
+    try {
+        // Too many wrong guesses: burn the stash and make the customer start over
+        if (pending.otpAttempts >= OTP_MAX_ATTEMPTS) {
+            const form = pending.form;
+            delete req.session.pendingCheckout;
+            return await renderCheckout(req, res, {
+                error: 'Too many incorrect codes. For your security, please place your order again.',
+                form,
+                status: 429
+            });
+        }
+
+        if (!otpIsActive(pending)) {
+            return await renderOtp(req, res, { error: 'That code has expired. Request a new one.', status: 410 });
+        }
+
+        const code = String(req.body.otp || '').replace(/\D/g, '').slice(0, OTP_LENGTH);
+        if (code.length !== OTP_LENGTH || !otpMatches(pending, code)) {
+            pending.otpAttempts += 1;
+            const left = OTP_MAX_ATTEMPTS - pending.otpAttempts;
+            const msg = left > 0
+                ? `Incorrect code. ${left} attempt${left === 1 ? '' : 's'} left.`
+                : 'Incorrect code. This code is now locked. Request a new one.';
+            return await renderOtp(req, res, { error: msg, status: 401 });
+        }
+
+        // Correct code: the payment is approved, place the order
+        const { form, payment } = pending;
+        delete req.session.pendingCheckout;
+        await placeOrder(req, res, form, payment);
+
+    } catch (error) {
+        console.error("OTP Verify Error:", error);
+        res.status(500).send('Unable to verify the code. Please try again.');
+    }
+});
+
+// Send a new code
+app.post('/checkout/otp/resend', requireLogin, csrfProtect, async (req, res) => {
+    const pending = req.session.pendingCheckout;
+    if (!pending) return res.redirect('/checkout');
+
+    const since = Date.now() - (pending.otpIssuedAt || 0);
+    if (since < OTP_RESEND_COOLDOWN_MS) {
+        const wait = Math.ceil((OTP_RESEND_COOLDOWN_MS - since) / 1000);
+        return renderOtp(req, res, { error: `Please wait ${wait}s before requesting a new code.`, status: 429 });
+    }
+
+    issueOtp(req);
+    res.redirect('/checkout/otp');
 });
 
 // Order confirmation (only the owner can view it)

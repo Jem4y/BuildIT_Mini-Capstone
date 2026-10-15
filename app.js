@@ -37,6 +37,33 @@ app.use(session({
 // MySQL Pool Database Connection
 const db = require('./conn');
 
+//  THE STORE'S 12 PC-PART CATEGORIES
+// Every category the store sells. initDB() makes sure these all exist and
+// migrates the older names (Processors, Graphics Cards, ...) to the new ones.
+const CATEGORIES = [
+    { name: 'Case',             icon: 'bi-pc-display-horizontal', badge: null,      itemCount: '0 Products' },
+    { name: 'Motherboard',      icon: 'bi-motherboard',           badge: null,      itemCount: '0 Products' },
+    { name: 'CPU',              icon: 'bi-cpu',                   badge: 'HOT',     itemCount: '0 Products' },
+    { name: 'RAM',              icon: 'bi-memory',                badge: 'SALE',    itemCount: '0 Products' },
+    { name: 'Storage (SSD/HDD)', icon: 'bi-hdd-stack',            badge: null,      itemCount: '0 Products' },
+    { name: 'GPU',              icon: 'bi-gpu-card',              badge: 'POPULAR', itemCount: '0 Products' },
+    { name: 'PSU',              icon: 'bi-lightning-charge',      badge: null,      itemCount: '0 Products' },
+    { name: 'Cooling System',   icon: 'bi-fan',                   badge: null,      itemCount: '0 Products' },
+    { name: 'Monitor',          icon: 'bi-display',               badge: 'NEW',     itemCount: '0 Products' },
+    { name: 'Keyboard',         icon: 'bi-keyboard',              badge: null,      itemCount: '0 Products' },
+    { name: 'Mouse',            icon: 'bi-mouse',                 badge: null,      itemCount: '0 Products' },
+    { name: 'Power Cable',      icon: 'bi-plug',                  badge: null,      itemCount: '0 Products' }
+];
+
+// Databases made before the 12-part list used these older names; initDB()
+// renames them (and any products filed under them) on startup.
+const LEGACY_CATEGORY_NAMES = {
+    'Processors':     'CPU',
+    'Graphics Cards': 'GPU',
+    'Motherboards':   'Motherboard',
+    'RAM Memory':     'RAM'
+};
+
 // Auto Database Schema Creator & Initial Seed Data
 async function initDB() {
     try {
@@ -155,27 +182,50 @@ async function initDB() {
             )
         `);
 
-        // Seed Sample Categories
-        const [categories] = await db.query('SELECT COUNT(*) AS count FROM categories');
-        if (categories[0].count === 0) {
-            await db.query(`
-                INSERT INTO categories (name, icon, badge, itemCount) VALUES
-                ('Processors', 'bi-cpu', 'HOT', '12 Products'),
-                ('Graphics Cards', 'bi-gpu-card', 'POPULAR', '8 Products'),
-                ('Motherboards', 'bi-motherboard', NULL, '15 Products'),
-                ('RAM Memory', 'bi-memory', 'SALE', '20 Products')
-            `);
+        // rename legacy category names (in both tables) or merge duplicates,
+        // then make sure every category on the parts list exists.
+        for (const [oldName, newName] of Object.entries(LEGACY_CATEGORY_NAMES)) {
+            const [oldRows] = await db.execute('SELECT id FROM categories WHERE name = ?', [oldName]);
+            if (oldRows.length > 0) {
+                const [newRows] = await db.execute('SELECT id FROM categories WHERE name = ?', [newName]);
+                if (newRows.length > 0) {
+                    await db.execute('DELETE FROM categories WHERE name = ?', [oldName]);
+                } else {
+                    await db.execute('UPDATE categories SET name = ? WHERE name = ?', [newName, oldName]);
+                }
+                console.log(`Renamed category "${oldName}" to "${newName}".`);
+            }
+            await db.execute('UPDATE products SET category = ? WHERE category = ?', [newName, oldName]);
         }
 
-        // Seed Sample Products
+        for (const cat of CATEGORIES) {
+            const [exists] = await db.execute('SELECT id FROM categories WHERE name = ?', [cat.name]);
+            if (exists.length === 0) {
+                await db.execute(
+                    'INSERT INTO categories (name, icon, badge, itemCount) VALUES (?, ?, ?, ?)',
+                    [cat.name, cat.icon, cat.badge, cat.itemCount]
+                );
+                console.log(`Added category: ${cat.name}`);
+            }
+        }
+
+        // Seed Sample Products (fresh databases only — one per category)
         const [products] = await db.query('SELECT COUNT(*) AS count FROM products');
         if (products[0].count === 0) {
             await db.query(`
                 INSERT INTO products (name, category, price, oldPrice, stock, image, badge) VALUES
-                ('AMD Ryzen 7 7800X3D Processor', 'Processors', 24990.00, 26990.00, 15, 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=600&q=80', 'BESTSELLER'),
-                ('NVIDIA GeForce RTX 4070 Super', 'Graphics Cards', 38500.00, 41000.00, 8, 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=600&q=80', 'NEW'),
-                ('ASUS ROG Strix B650-F Gaming WiFi', 'Motherboards', 16200.00, NULL, 12, 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80', NULL),
-                ('G.SKILL Trident Z5 RGB 32GB DDR5', 'RAM Memory', 8900.00, 9500.00, 25, 'https://images.unsplash.com/photo-1562976540-1502c2145186?auto=format&fit=crop&w=600&q=80', 'DEAL')
+                ('Tecware Nexus Air M2 Micro-ATX Case', 'Case', 2495.00, NULL, 10, '/images/no-image.svg', NULL),
+                ('ASUS ROG Strix B650-F Gaming WiFi', 'Motherboard', 16200.00, NULL, 12, 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80', NULL),
+                ('AMD Ryzen 7 7800X3D Processor', 'CPU', 24990.00, 26990.00, 15, 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?auto=format&fit=crop&w=600&q=80', 'BESTSELLER'),
+                ('G.SKILL Trident Z5 RGB 32GB DDR5', 'RAM', 8900.00, 9500.00, 25, 'https://images.unsplash.com/photo-1562976540-1502c2145186?auto=format&fit=crop&w=600&q=80', 'DEAL'),
+                ('Samsung 990 PRO 1TB NVMe SSD', 'Storage (SSD/HDD)', 7499.00, 8299.00, 14, '/images/no-image.svg', 'SALE'),
+                ('NVIDIA GeForce RTX 4070 Super', 'GPU', 38500.00, 41000.00, 8, 'https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=600&q=80', 'NEW'),
+                ('Corsair RM750e 750W 80+ Gold PSU', 'PSU', 6450.00, NULL, 9, '/images/no-image.svg', NULL),
+                ('DeepCool AK400 CPU Tower Cooler', 'Cooling System', 1799.00, NULL, 20, '/images/no-image.svg', NULL),
+                ('AOC 24G2SP 165Hz 24-inch Monitor', 'Monitor', 9800.00, 10900.00, 7, '/images/no-image.svg', 'DEAL'),
+                ('Redragon K552 Mechanical Keyboard', 'Keyboard', 2199.00, NULL, 16, '/images/no-image.svg', NULL),
+                ('Logitech G102 Lightsync Gaming Mouse', 'Mouse', 1099.00, 1299.00, 22, '/images/no-image.svg', 'SALE'),
+                ('Heavy-Duty Power Cord 1.5m', 'Power Cable', 199.00, NULL, 50, '/images/no-image.svg', NULL)
             `);
         }
 
@@ -996,22 +1046,44 @@ app.get('/logout', (req, res) => {
     });
 });
 
-//  PC BUILDER ROUTES 
+//  PC BUILDER ROUTES
 
-// PC Builder View
+// The 12 builder slots (same order as the store's parts list). Each dropdown
+// lists in-stock products of that slot's category, and each selection posts
+// under its `field` name (caseId, moboId, cpuId, ...).
+const BUILDER_SLOTS = [
+    { field: 'caseId',      category: 'Case',              label: 'CASE',                icon: 'bi-pc-display-horizontal' },
+    { field: 'moboId',      category: 'Motherboard',       label: 'MOTHERBOARD',         icon: 'bi-motherboard' },
+    { field: 'cpuId',       category: 'CPU',               label: 'PROCESSOR (CPU)',     icon: 'bi-cpu' },
+    { field: 'ramId',       category: 'RAM',               label: 'SYSTEM MEMORY (RAM)', icon: 'bi-memory' },
+    { field: 'storageId',   category: 'Storage (SSD/HDD)', label: 'STORAGE (SSD/HDD)',   icon: 'bi-hdd-stack' },
+    { field: 'gpuId',       category: 'GPU',               label: 'GRAPHICS CARD (GPU)', icon: 'bi-gpu-card' },
+    { field: 'psuId',       category: 'PSU',               label: 'POWER SUPPLY (PSU)',  icon: 'bi-lightning-charge' },
+    { field: 'coolingId',   category: 'Cooling System',    label: 'COOLING SYSTEM',      icon: 'bi-fan' },
+    { field: 'monitorId',   category: 'Monitor',           label: 'MONITOR',             icon: 'bi-display' },
+    { field: 'keyboardId',  category: 'Keyboard',          label: 'KEYBOARD',            icon: 'bi-keyboard' },
+    { field: 'mouseId',     category: 'Mouse',             label: 'MOUSE',               icon: 'bi-mouse' },
+    { field: 'powerCableId', category: 'Power Cable',      label: 'POWER CABLE',         icon: 'bi-plug' }
+];
+
+// PC Builder View — one query feeds all 12 dropdowns
 app.get('/pcbuild', async (req, res) => {
     try {
-        // Fetch products grouped by hardware category
-        const [cpus] = await db.query("SELECT * FROM products WHERE category = 'Processors' AND stock > 0");
-        const [gpus] = await db.query("SELECT * FROM products WHERE category = 'Graphics Cards' AND stock > 0");
-        const [motherboards] = await db.query("SELECT * FROM products WHERE category = 'Motherboards' AND stock > 0");
-        const [rams] = await db.query("SELECT * FROM products WHERE category = 'RAM Memory' AND stock > 0");
+        const [products] = await db.query(
+            `SELECT * FROM products
+             WHERE stock > 0 AND category IN (${BUILDER_SLOTS.map(() => '?').join(', ')})
+             ORDER BY name ASC`,
+            BUILDER_SLOTS.map(slot => slot.category)
+        );
+
+        const byCategory = new Map();
+        for (const p of products) {
+            if (!byCategory.has(p.category)) byCategory.set(p.category, []);
+            byCategory.get(p.category).push(p);
+        }
 
         res.render('pcbuilder', {
-            cpus,
-            gpus,
-            motherboards,
-            rams,
+            components: BUILDER_SLOTS.map(slot => ({ ...slot, items: byCategory.get(slot.category) || [] })),
             user: req.session.userName || null
         });
     } catch (error) {
@@ -1020,24 +1092,40 @@ app.get('/pcbuild', async (req, res) => {
     }
 });
 
-// PC Builder Batch Add-To-Cart POST
+// PC Builder Batch Add-To-Cart POST — accepts any/all of the 12 slots
 app.post('/pcbuild/add-all', requireLogin, async (req, res) => {
     try {
         const userId = req.session.userId;
-        const { cpuId, gpuId, moboId, ramId } = req.body;
 
-        const selectedProductIds = [cpuId, gpuId, moboId, ramId].filter(id => id && id !== "");
+        // Collect every selected slot id (blank dropdowns are skipped)
+        const selectedIds = [];
+        for (const slot of BUILDER_SLOTS) {
+            const id = Number(req.body[slot.field]);
+            if (Number.isInteger(id) && id > 0 && !selectedIds.includes(id)) {
+                selectedIds.push(id);
+            }
+        }
 
-        if (selectedProductIds.length === 0) {
+        if (selectedIds.length === 0) {
             return res.send("Please select at least one component to add to your build.");
         }
 
-        for (const productId of selectedProductIds) {
+        // Only accept ids that really exist and are still in stock
+        const [rows] = await db.execute(
+            `SELECT id FROM products
+             WHERE id IN (${selectedIds.map(() => '?').join(', ')}) AND stock > 0`,
+            selectedIds
+        );
+        if (rows.length === 0) {
+            return res.send("None of the selected components are in stock.");
+        }
+
+        for (const { id } of rows) {
             await db.execute(
                 `INSERT INTO cart_items (user_id, product_id, quantity)
                 VALUES (?, ?, 1)
                 ON DUPLICATE KEY UPDATE quantity = quantity + 1`,
-                [userId, productId]
+                [userId, id]
             );
         }
 

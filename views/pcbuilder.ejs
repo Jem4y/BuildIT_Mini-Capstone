@@ -37,81 +37,33 @@
     <div class="builder-hero mb-4">
       <span class="eyebrow"><i class="bi bi-tools"></i> SYSTEM CONFIGURATOR</span>
       <h1 class="builder-title">CUSTOM RIG BUILDER</h1>
-      <p class="builder-subtitle">Select your core hardware components to compile a complete custom desktop configuration.</p>
+      <p class="builder-subtitle">Pick every part of your build — case, motherboard, CPU, RAM, storage, GPU, PSU, cooling, monitor, keyboard, mouse, and power cable — to compile a complete custom desktop configuration.</p>
     </div>
 
     <form action="/pcbuild/add-all" method="POST">
       <div class="builder-grid">
         
-        <!-- COMPONENT SELECTION -->
+        <!-- COMPONENT SELECTION — one card per part from BUILDER_SLOTS -->
         <div class="board-card">
           <span class="section-label">SYSTEM HARDWARE SPECS</span>
 
           <div class="component-list">
-            
-            <!-- PROCESSOR -->
-            <div class="component-item">
-              <div class="component-icon"><i class="bi bi-cpu"></i></div>
-              <div class="component-meta">
-                <div class="component-name">PROCESSOR (CPU)</div>
-                <select name="cpuId" class="form-select bg-dark text-white border-secondary mt-1 p-2 w-100 component-select" onchange="calculateTotal()">
-                  <option value="" data-price="0">-- Select CPU --</option>
-                  <% cpus.forEach(cpu => { %>
-                    <option value="<%= cpu.id %>" data-price="<%= cpu.price %>">
-                      <%= cpu.name %> - ₱<%= Number(cpu.price).toLocaleString() %>
-                    </option>
-                  <% }) %>
-                </select>
+            <% components.forEach(c => { %>
+              <div class="component-item">
+                <div class="component-icon"><i class="bi <%= c.icon %>"></i></div>
+                <div class="component-meta">
+                  <div class="component-name"><%= c.label %></div>
+                  <select name="<%= c.field %>" class="form-select bg-dark text-white border-secondary mt-1 p-2 w-100 component-select" onchange="calculateTotal()">
+                    <option value="" data-price="0">-- Select <%= c.category %> --</option>
+                    <% c.items.forEach(item => { %>
+                      <option value="<%= item.id %>" data-price="<%= item.price %>">
+                        <%= item.name %> - ₱<%= Number(item.price).toLocaleString() %>
+                      </option>
+                    <% }) %>
+                  </select>
+                </div>
               </div>
-            </div>
-
-            <!-- GRAPHICS CARD -->
-            <div class="component-item">
-              <div class="component-icon"><i class="bi bi-gpu-card"></i></div>
-              <div class="component-meta">
-                <div class="component-name">GRAPHICS CARD (GPU)</div>
-                <select name="gpuId" class="form-select bg-dark text-white border-secondary mt-1 p-2 w-100 component-select" onchange="calculateTotal()">
-                  <option value="" data-price="0">-- Select GPU --</option>
-                  <% gpus.forEach(gpu => { %>
-                    <option value="<%= gpu.id %>" data-price="<%= gpu.price %>">
-                      <%= gpu.name %> - ₱<%= Number(gpu.price).toLocaleString() %>
-                    </option>
-                  <% }) %>
-                </select>
-              </div>
-            </div>
-
-            <!-- MOTHERBOARD -->
-            <div class="component-item">
-              <div class="component-icon"><i class="bi bi-motherboard"></i></div>
-              <div class="component-meta">
-                <div class="component-name">MOTHERBOARD</div>
-                <select name="moboId" class="form-select bg-dark text-white border-secondary mt-1 p-2 w-100 component-select" onchange="calculateTotal()">
-                  <option value="" data-price="0">-- Select Motherboard --</option>
-                  <% motherboards.forEach(mobo => { %>
-                    <option value="<%= mobo.id %>" data-price="<%= mobo.price %>">
-                      <%= mobo.name %> - ₱<%= Number(mobo.price).toLocaleString() %>
-                    </option>
-                  <% }) %>
-                </select>
-              </div>
-            </div>
-
-            <!-- RAM -->
-            <div class="component-item">
-              <div class="component-icon"><i class="bi bi-memory"></i></div>
-              <div class="component-meta">
-                <div class="component-name">SYSTEM MEMORY (RAM)</div>
-                <select name="ramId" class="form-select bg-dark text-white border-secondary mt-1 p-2 w-100 component-select" onchange="calculateTotal()">
-                  <option value="" data-price="0">-- Select RAM --</option>
-                  <% rams.forEach(ram => { %>
-                    <option value="<%= ram.id %>" data-price="<%= ram.price %>">
-                      <%= ram.name %> - ₱<%= Number(ram.price).toLocaleString() %>
-                    </option>
-                  <% }) %>
-                </select>
-              </div>
-            </div>
+            <% }) %>
 
           </div>
         </div>
